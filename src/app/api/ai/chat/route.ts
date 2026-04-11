@@ -69,7 +69,7 @@ Respond like a sharp fintech advisor, not a textbook.`;
 
 
 
-    const apiKey = "";
+    const apiKey = ""; //RECOMMEND CALLING API USING .ENV, HARDCODED API-KEY INCREASE RISK OF DATA-BREACH
     console.log("API KEY:", apiKey);
 
     if (!apiKey) {

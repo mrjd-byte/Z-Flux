@@ -19,11 +19,6 @@ export default function AIAdvisorPage() {
   const [insights, setInsights] = useState<InsightData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const defaultMessage = {
-    role: "ai",
-    content: "Hi! I'm your Z-Flux AI Advisor. How can I help you manage your finances today?"
-  };
-
   const [chatMessage, setChatMessage] = useState("");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -31,67 +26,54 @@ export default function AIAdvisorPage() {
 
   // ✅ LOAD SESSIONS
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const fetchSessions = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-    const saved = localStorage.getItem("zflux_chat_sessions");
-
-    if (!saved) {
-      const newSession: ChatSession = {
-        id: Date.now().toString(),
-        title: "New Chat",
-        messages: [defaultMessage]
-      };
-      setSessions([newSession]);
-      setActiveSessionId(newSession.id);
-      return;
-    }
-
-    try {
-      const parsed: ChatSession[] = JSON.parse(saved);
-
-      if (!parsed.length) {
-        const newSession: ChatSession = {
-          id: Date.now().toString(),
-          title: "New Chat",
-          messages: [defaultMessage]
-        };
-        setSessions([newSession]);
-        setActiveSessionId(newSession.id);
-        return;
+        const res = await fetch("/api/chat/session", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.sessions && data.sessions.length > 0) {
+            setSessions(data.sessions);
+            setActiveSessionId(data.sessions[0].id);
+          } else {
+            // Initializing default session on first open if empty
+            createNewSession();
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load sessions", err);
       }
+    };
 
-      setSessions(parsed);
-      setActiveSessionId(parsed[0].id);
-
-    } catch {
-      const newSession: ChatSession = {
-        id: Date.now().toString(),
-        title: "New Chat",
-        messages: [defaultMessage]
-      };
-      setSessions([newSession]);
-      setActiveSessionId(newSession.id);
-    }
+    fetchSessions();
   }, []);
-
-  // ✅ SAVE SESSIONS
-  useEffect(() => {
-    if (sessions.length > 0) {
-      localStorage.setItem("zflux_chat_sessions", JSON.stringify(sessions));
-    }
-  }, [sessions]);
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
   const chatLog = activeSession ? activeSession.messages : [];
 
-  const createNewSession = () => {
-    const newSession: ChatSession = {
-      id: Date.now().toString(),
-      title: "New Chat",
-      messages: [defaultMessage]
-    };
-    setSessions(prev => [newSession, ...prev]);
-    setActiveSessionId(newSession.id);
+  const createNewSession = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch("/api/chat/session", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(prev => [data.session, ...prev]);
+        setActiveSessionId(data.session.id);
+      }
+    } catch (err) {
+      console.error("Failed to create session", err);
+    }
   };
 
   // 🔥 FETCH INSIGHTS
@@ -133,20 +115,31 @@ export default function AIAdvisorPage() {
       newTitle = currentMessage.length > 25 ? currentMessage.slice(0, 25) + "..." : currentMessage;
     }
 
+    const optimisticUserMessage = { role: "user", content: currentMessage };
+    let newMessages = [...(activeSession?.messages || []), optimisticUserMessage];
+
+    // Optimistic UI Update for User Message
     setSessions(prev => prev.map(s => {
       if (s.id === activeSessionId) {
         return {
           ...s,
           title: newTitle,
-          messages: [...s.messages, { role: "user", content: currentMessage }]
+          messages: newMessages
         };
       }
       return s;
     }));
 
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    
+    // Background sync of user message and potentially title
+    fetch(`/api/chat/session/${activeSessionId}`, {
+       method: "PATCH",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+       body: JSON.stringify({ messages: newMessages, title: isFirstUserMessage ? newTitle : undefined })
+    }).catch(console.error);
 
+    try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: {
@@ -158,28 +151,48 @@ export default function AIAdvisorPage() {
 
       if (res.ok) {
         const data = await res.json();
+        const optimisticAIMessage = { role: "ai", content: data.response };
+        newMessages = [...newMessages, optimisticAIMessage];
+
+        // UI Update for AI Message
         setSessions(prev => prev.map(s => {
           if (s.id === activeSessionId) {
-            return { ...s, messages: [...s.messages, { role: "ai", content: data.response }] };
+            return { ...s, messages: newMessages };
           }
           return s;
         }));
+
+        // Background sync of AI response
+        fetch(`/api/chat/session/${activeSessionId}`, {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+           body: JSON.stringify({ messages: newMessages })
+        }).catch(console.error);
+
       } else {
-        setSessions(prev => prev.map(s => {
-          if (s.id === activeSessionId) {
-            return { ...s, messages: [...s.messages, { role: "ai", content: "Error connecting to AI advisor." }] };
-          }
-          return s;
-        }));
+        const errorMsg = { role: "ai", content: "Error connecting to AI advisor." };
+        newMessages = [...newMessages, errorMsg];
+        
+        setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: newMessages } : s));
+        
+        fetch(`/api/chat/session/${activeSessionId}`, {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+           body: JSON.stringify({ messages: newMessages })
+        }).catch(console.error);
       }
 
     } catch {
-      setSessions(prev => prev.map(s => {
-        if (s.id === activeSessionId) {
-          return { ...s, messages: [...s.messages, { role: "ai", content: "Service unreachable." }] };
-        }
-        return s;
-      }));
+       const unreachableMsg = { role: "ai", content: "Service unreachable." };
+       newMessages = [...newMessages, unreachableMsg];
+       
+       setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: newMessages } : s));
+       
+       fetch(`/api/chat/session/${activeSessionId}`, {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+           body: JSON.stringify({ messages: newMessages })
+       }).catch(console.error);
     } finally {
       setIsTyping(false);
     }

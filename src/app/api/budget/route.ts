@@ -44,7 +44,7 @@ export async function GET(req: Request) {
       spentMap[cat] = (spentMap[cat] || 0) + tx.amount;
     }
 
-    const payload = budgets.map(b => {
+    const payload = budgets.map((b: any) => {
       const spent = spentMap[b.category] || 0;
       const remaining = b.amount - spent;
       const percentage = b.amount > 0 ? (spent / b.amount) * 100 : 0;
