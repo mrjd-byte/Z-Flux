@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, Loader2, Send, AlertTriangle, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Sparkles, Loader2, Send, AlertTriangle, ShieldAlert, CheckCircle2, Plus, MessageSquare } from "lucide-react";
 
 type InsightData = {
   message: string;
   type: "danger" | "warning" | "good";
+};
+
+type ChatMessage = { role: string; content: string };
+type ChatSession = {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
 };
 
 export default function AIAdvisorPage() {
@@ -18,48 +25,74 @@ export default function AIAdvisorPage() {
   };
 
   const [chatMessage, setChatMessage] = useState("");
-
-  const [chatLog, setChatLog] = useState<{ role: string; content: string }[]>([]);
-
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
 
-  // ✅ LOAD CHAT (FIXED)
+  // ✅ LOAD SESSIONS
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const saved = localStorage.getItem("zflux_chat");
+    const saved = localStorage.getItem("zflux_chat_sessions");
 
     if (!saved) {
-      setChatLog([defaultMessage]);
+      const newSession: ChatSession = {
+        id: Date.now().toString(),
+        title: "New Chat",
+        messages: [defaultMessage]
+      };
+      setSessions([newSession]);
+      setActiveSessionId(newSession.id);
       return;
     }
 
     try {
-      const parsed = JSON.parse(saved);
+      const parsed: ChatSession[] = JSON.parse(saved);
 
       if (!parsed.length) {
-        setChatLog([defaultMessage]);
+        const newSession: ChatSession = {
+          id: Date.now().toString(),
+          title: "New Chat",
+          messages: [defaultMessage]
+        };
+        setSessions([newSession]);
+        setActiveSessionId(newSession.id);
         return;
       }
 
-      // Ensure first message is always AI intro
-      if (parsed[0].content !== defaultMessage.content) {
-        setChatLog([defaultMessage, ...parsed]);
-      } else {
-        setChatLog(parsed);
-      }
+      setSessions(parsed);
+      setActiveSessionId(parsed[0].id);
 
     } catch {
-      setChatLog([defaultMessage]);
+      const newSession: ChatSession = {
+        id: Date.now().toString(),
+        title: "New Chat",
+        messages: [defaultMessage]
+      };
+      setSessions([newSession]);
+      setActiveSessionId(newSession.id);
     }
   }, []);
 
-  // ✅ SAVE CHAT
+  // ✅ SAVE SESSIONS
   useEffect(() => {
-    if (chatLog.length > 0) {
-      localStorage.setItem("zflux_chat", JSON.stringify(chatLog));
+    if (sessions.length > 0) {
+      localStorage.setItem("zflux_chat_sessions", JSON.stringify(sessions));
     }
-  }, [chatLog]);
+  }, [sessions]);
+
+  const activeSession = sessions.find(s => s.id === activeSessionId);
+  const chatLog = activeSession ? activeSession.messages : [];
+
+  const createNewSession = () => {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      title: "New Chat",
+      messages: [defaultMessage]
+    };
+    setSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSession.id);
+  };
 
   // 🔥 FETCH INSIGHTS
   useEffect(() => {
@@ -87,14 +120,29 @@ export default function AIAdvisorPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!chatMessage.trim() || isTyping) return;
+    if (!chatMessage.trim() || isTyping || !activeSessionId) return;
 
     const currentMessage = chatMessage;
-
-    setChatLog(prev => [...prev, { role: "user", content: currentMessage }]);
-
     setChatMessage("");
     setIsTyping(true);
+
+    const isFirstUserMessage = chatLog.filter(m => m.role === "user").length === 0;
+    let newTitle = activeSession?.title || "New Chat";
+    
+    if (isFirstUserMessage) {
+      newTitle = currentMessage.length > 25 ? currentMessage.slice(0, 25) + "..." : currentMessage;
+    }
+
+    setSessions(prev => prev.map(s => {
+      if (s.id === activeSessionId) {
+        return {
+          ...s,
+          title: newTitle,
+          messages: [...s.messages, { role: "user", content: currentMessage }]
+        };
+      }
+      return s;
+    }));
 
     try {
       const token = localStorage.getItem("token");
@@ -110,14 +158,28 @@ export default function AIAdvisorPage() {
 
       if (res.ok) {
         const data = await res.json();
-
-        setChatLog(prev => [...prev, { role: "ai", content: data.response }]);
+        setSessions(prev => prev.map(s => {
+          if (s.id === activeSessionId) {
+            return { ...s, messages: [...s.messages, { role: "ai", content: data.response }] };
+          }
+          return s;
+        }));
       } else {
-        setChatLog(prev => [...prev, { role: "ai", content: "Error connecting to AI advisor." }]);
+        setSessions(prev => prev.map(s => {
+          if (s.id === activeSessionId) {
+            return { ...s, messages: [...s.messages, { role: "ai", content: "Error connecting to AI advisor." }] };
+          }
+          return s;
+        }));
       }
 
     } catch {
-      setChatLog(prev => [...prev, { role: "ai", content: "Service unreachable." }]);
+      setSessions(prev => prev.map(s => {
+        if (s.id === activeSessionId) {
+          return { ...s, messages: [...s.messages, { role: "ai", content: "Service unreachable." }] };
+        }
+        return s;
+      }));
     } finally {
       setIsTyping(false);
     }
@@ -142,8 +204,9 @@ export default function AIAdvisorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* INSIGHTS */}
+        {/* LEFT COLUMN: INSIGHTS & HISTORY */}
         <div className="space-y-6">
+          {/* INSIGHTS */}
           <div className="bg-white/5 rounded-2xl border border-white/10">
             <div className="p-4 border-b border-white/10">
               <h3 className="font-semibold text-white">Summary Insights</h3>
@@ -166,18 +229,45 @@ export default function AIAdvisorPage() {
               )}
             </div>
           </div>
+
+          {/* HISTORY */}
+          <div className="bg-white/5 rounded-2xl border border-white/10 flex flex-col max-h-[400px]">
+             <div className="p-4 border-b border-white/10 flex items-center justify-between">
+               <h3 className="font-semibold text-white">Chat History</h3>
+               <button onClick={createNewSession} className="text-xs bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 py-1.5 rounded-lg transition-all shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+                 <Plus className="w-3.5 h-3.5" /> New
+               </button>
+             </div>
+             <div className="p-2 overflow-y-auto space-y-1 custom-scrollbar min-h-[150px]">
+                {sessions.map(session => (
+                   <button 
+                     key={session.id}
+                     onClick={() => setActiveSessionId(session.id)}
+                     className={`w-full text-left px-3 py-3 rounded-xl transition-all flex items-center gap-3 ${
+                       session.id === activeSessionId ? "bg-white/10 text-white ring-1 ring-white/20" : "text-white/60 hover:bg-white/5 hover:text-white"
+                     }`}
+                   >
+                     <MessageSquare className={`w-4 h-4 shrink-0 ${session.id === activeSessionId ? "text-blue-400" : ""}`} />
+                     <span className="text-sm truncate w-full font-medium">{session.title}</span>
+                   </button>
+                ))}
+             </div>
+          </div>
         </div>
 
         {/* CHAT */}
-        <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-white/10 flex flex-col h-[600px]">
+        <div className="lg:col-span-2 bg-white/5 rounded-2xl border border-white/10 flex flex-col h-[600px] lg:h-auto lg:min-h-[600px]">
 
           {/* HEADER */}
           <div className="p-4 border-b border-white/10 flex justify-between">
             <div>
               <h3 className="text-white font-semibold">Ask your Advisor</h3>
-              <p className="text-xs text-white/50">Personalized guidance</p>
+              <p className="text-xs text-white/50">{activeSession ? activeSession.title : "Personalized guidance"}</p>
             </div>
-            <div className="text-green-400 text-xs">Online</div>
+            <div className="text-green-400 text-xs flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+              Online
+            </div>
           </div>
 
           {/* CHAT LOG */}
@@ -194,7 +284,15 @@ export default function AIAdvisorPage() {
               </div>
             ))}
 
-            {isTyping && <div className="text-white/50 text-sm">Typing...</div>}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-white/5 rounded-2xl p-4 text-sm rounded-bl-sm border border-white/10 flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                  <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce"></span>
+                  <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* INPUT */}
@@ -204,9 +302,9 @@ export default function AIAdvisorPage() {
                 value={chatMessage}
                 onChange={e => setChatMessage(e.target.value)}
                 placeholder="Ask something..."
-                className="flex-1 bg-black/20 border border-white/10 rounded-full px-4 py-2 text-white"
+                className="flex-1 bg-black/20 border border-white/10 rounded-full px-4 py-2 text-white outline-none focus:ring-2 focus:ring-blue-500/50"
               />
-              <button className="bg-blue-600 px-4 rounded-full">
+              <button disabled={isTyping || !chatMessage.trim()} className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-4 rounded-full text-white transition-opacity">
                 <Send size={16} />
               </button>
             </form>
