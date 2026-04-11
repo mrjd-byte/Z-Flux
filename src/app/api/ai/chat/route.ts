@@ -55,7 +55,7 @@ User Financial Context:
 - Remaining Budget: $${analytics.remainingBudget}
 
 Category Budgets:
-${budgets.map(b => `
+${budgets.map((b: any) => `
 ${b.category}:
 - Limit: $${b.limit}
 - Spent: $${b.spent}
