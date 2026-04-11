@@ -67,6 +67,7 @@ export default function TransactionsPage() {
         setIsModalOpen(false);
         setAmount("");
         fetchTransactions(); // Refetch latest immediately
+        window.dispatchEvent(new Event("financial-data-updated"));
       }
     } catch (error) {
       console.error("Failed to add transaction:", error);
@@ -78,45 +79,45 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold dark:text-white">Transactions</h1>
+        <h1 className="text-3xl font-bold text-white tracking-tight">Transactions</h1>
         
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ease-in-out"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 ease-in-out font-medium"
         >
           <Plus className="w-4 h-4" />
-          <span className="text-sm font-medium">Add Transaction</span>
+          <span className="text-sm">Add Transaction</span>
         </button>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 min-h-[400px] hover:scale-[1.01] transition-all duration-200 ease-in-out">
+      <div className="relative overflow-hidden bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] min-h-[400px] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
         {loading ? (
-          <div className="flex items-center justify-center h-48">
+          <div className="flex items-center justify-center h-48 relative z-10">
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
           </div>
         ) : transactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center h-48 text-white/50 relative z-10">
             <p>No transactions found.</p>
             <p className="text-sm mt-1">Add your first transaction above.</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-white/10 relative z-10">
             {transactions.map((tx) => {
               const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
               return (
-                <div key={tx.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-200 ease-in-out">
+                <div key={tx.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-white/5 transition-all duration-200 ease-in-out">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-full ${isCredit ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
-                      {isCredit ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                    <div className={`p-3 rounded-full ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1)] ${isCredit ? 'bg-green-500/10 text-green-400 ring-green-500/20' : 'bg-red-500/10 text-red-400 ring-red-500/20'}`}>
+                      {isCredit ? <ArrowDownRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> : <ArrowUpRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{tx.category}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <h4 className="font-medium text-sm text-white tracking-wide">{tx.category}</h4>
+                      <p className="text-xs text-white/50">
                         {new Date(tx.createdAt).toLocaleDateString()} &middot; {tx.description}
                       </p>
                     </div>
                   </div>
-                  <div className={`font-bold ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
+                  <div className={`font-bold tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
                     {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
                   </div>
                 </div>
@@ -128,18 +129,18 @@ export default function TransactionsPage() {
 
       {/* Transaction Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold dark:text-white">New Transaction</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl w-full max-w-sm overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10 relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-4 border-b border-white/10">
+              <h3 className="font-semibold text-white tracking-tight">New Transaction</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-white/50 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleAddTransaction} className="p-4 space-y-4">
+            <form onSubmit={handleAddTransaction} className="p-5 space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Amount ($)</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Amount ($)</label>
                 <input
                   type="number"
                   min="0.01"
@@ -147,7 +148,7 @@ export default function TransactionsPage() {
                   required
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md dark:bg-white/5 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full px-3 py-2.5 border rounded-xl bg-black/20 backdrop-blur-md border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 placeholder:text-white/30"
                   placeholder="0.00"
                 />
               </div>
@@ -156,8 +157,8 @@ export default function TransactionsPage() {
                 <button
                   type="button"
                   onClick={() => setType("EXPENSE")}
-                  className={`py-2 rounded-md font-medium text-sm transition-all duration-200 ease-in-out ${
-                    type === "EXPENSE" ? "bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 dark:border dark:border-red-500/20" : "bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                  className={`py-2 rounded-xl font-medium text-sm transition-all duration-200 ease-in-out ring-1 ${
+                    type === "EXPENSE" ? "bg-red-500/10 text-red-400 ring-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]" : "bg-white/5 text-white/50 ring-white/5 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   Expense
@@ -165,8 +166,8 @@ export default function TransactionsPage() {
                 <button
                   type="button"
                   onClick={() => setType("INCOME")}
-                  className={`py-2 rounded-md font-medium text-sm transition-all duration-200 ease-in-out ${
-                    type === "INCOME" ? "bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400 dark:border dark:border-green-500/20" : "bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+                  className={`py-2 rounded-xl font-medium text-sm transition-all duration-200 ease-in-out ring-1 ${
+                    type === "INCOME" ? "bg-green-500/10 text-green-400 ring-green-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]" : "bg-white/5 text-white/50 ring-white/5 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   Income
@@ -174,20 +175,20 @@ export default function TransactionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Category</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Category</label>
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md dark:bg-white/5 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full px-3 py-2.5 border rounded-xl bg-black/20 backdrop-blur-md border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
                 >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
                 </select>
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white rounded-md py-2 mt-2 hover:bg-blue-500/90 dark:hover:bg-blue-500/80 transition-all duration-200 ease-in-out disabled:opacity-50 flex justify-center items-center h-10"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/20 text-white rounded-xl py-2.5 mt-2 transition-all duration-300 ease-in-out disabled:opacity-50 flex justify-center items-center h-11 font-medium"
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Transaction"}
               </button>

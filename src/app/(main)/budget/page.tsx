@@ -69,6 +69,7 @@ export default function BudgetPage() {
         setIsModalOpen(false);
         setAmount("");
         fetchBudgets(); // Refresh math
+        window.dispatchEvent(new Event("financial-data-updated"));
       }
     } catch (error) {
       console.error("Failed to save budget:", error);
@@ -85,46 +86,46 @@ export default function BudgetPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold dark:text-white">Budget Categories</h1>
+        <h1 className="text-3xl font-bold text-white tracking-tight">Budget Categories</h1>
         
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 ease-in-out"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/20 px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 ease-in-out font-medium"
         >
           <Plus className="w-4 h-4" />
-          <span className="text-sm font-medium">Add Budget</span>
+          <span className="text-sm">Add Budget</span>
         </button>
       </div>
       
       {/* Overview Card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:scale-[1.01] transition-all duration-200 ease-in-out">
-          <div className="p-3 bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 rounded-xl">
-            <Target className="w-6 h-6" />
+        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
+          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/20 group-hover:bg-indigo-500/20 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all">
+            <Target className="w-6 h-6 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
           </div>
-          <div>
-            <h3 className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Total Allocated Limit</h3>
-            <p className="text-2xl font-semibold mt-1 dark:text-white">${totalLimit.toFixed(2)}</p>
-          </div>
-        </div>
-
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:scale-[1.01] transition-all duration-200 ease-in-out">
-          <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-xl">
-            <TrendingUp className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Total Spent (Allocated)</h3>
-            <p className="text-2xl font-semibold mt-1 dark:text-white">${totalSpent.toFixed(2)}</p>
+          <div className="relative z-10">
+            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Allocated Limit</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${totalLimit.toFixed(2)}</p>
           </div>
         </div>
 
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4 hover:scale-[1.01] transition-all duration-200 ease-in-out">
-          <div className="p-3 bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 rounded-xl">
-            <CalendarDays className="w-6 h-6" />
+        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/20 group-hover:bg-emerald-500/20 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
+            <TrendingUp className="w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
           </div>
-          <div>
-            <h3 className="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Days Remaining</h3>
-            <p className="text-2xl font-semibold mt-1 dark:text-white">{daysLeft} Days</p>
+          <div className="relative z-10">
+            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Spent (Allocated)</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${totalSpent.toFixed(2)}</p>
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
+          <div className="p-3 bg-orange-500/10 text-orange-400 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20 group-hover:bg-orange-500/20 group-hover:shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all">
+            <CalendarDays className="w-6 h-6 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Days Remaining</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">{daysLeft} Days</p>
           </div>
         </div>
       </div>
@@ -145,39 +146,39 @@ export default function BudgetPage() {
               const barColor = isOver ? 'bg-red-500' : b.percentage > 85 ? 'bg-orange-500' : 'bg-blue-500';
               
               return (
-                <div key={b.id} className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between hover:scale-[1.01] transition-all duration-200 ease-in-out hover:border-white/10">
-                  <div>
+                <div key={b.id} className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex flex-col justify-between hover:scale-[1.01] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none group">
+                  <div className="relative z-10">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="font-semibold text-lg dark:text-white">{b.category}</h3>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-md ${isOver ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                      <h3 className="text-lg font-semibold text-white tracking-tight">{b.category}</h3>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-md ring-1 ${isOver ? 'bg-red-500/10 text-red-400 ring-red-500/20' : 'bg-white/10 text-white/70 ring-white/20'}`}>
                         {b.percentage}% Used
                       </span>
                     </div>
 
                     <div className="flex justify-between text-sm mb-2">
-                       <span className="text-gray-500 dark:text-gray-400">Spent: <strong className="text-gray-900 dark:text-white">${b.spent.toFixed(2)}</strong></span>
-                       <span className="text-gray-500 dark:text-gray-400">Limit: <strong className="text-gray-900 dark:text-white">${b.limit.toFixed(2)}</strong></span>
+                       <span className="text-white/60">Spent: <strong className="text-white">${b.spent.toFixed(2)}</strong></span>
+                       <span className="text-white/60">Limit: <strong className="text-white">${b.limit.toFixed(2)}</strong></span>
                     </div>
                     
                     {/* Progress Bar Container */}
-                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 mb-4 overflow-hidden">
+                    <div className="w-full bg-white/10 rounded-full h-3 mb-4 overflow-hidden ring-1 ring-white/5">
                       <div 
-                        className={`h-3 rounded-full transition-all duration-500 ${barColor}`} 
+                        className={`h-3 rounded-full transition-all duration-500 ${isOver ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : b.percentage > 85 ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]'}`} 
                         style={{ width: `${Math.min(b.percentage, 100)}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-2 border-t pt-4 border-gray-100 dark:border-gray-700">
-                     <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl text-center transition-all duration-200 hover:dark:bg-white/10">
-                        <span className="block text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Remaining</span>
-                        <span className={`font-semibold ${b.remaining < 0 ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
+                  <div className="grid grid-cols-2 gap-4 mt-2 border-t pt-4 border-white/10 relative z-10">
+                     <div className="bg-white/5 p-3 rounded-xl text-center transition-all duration-200 group-hover:bg-white/10 ring-1 ring-white/5">
+                        <span className="block text-xs uppercase tracking-wider text-white/50 mb-1">Remaining</span>
+                        <span className={`font-bold tracking-tight ${b.remaining < 0 ? 'text-red-400' : 'text-white'}`}>
                           ${b.remaining.toFixed(2)}
                         </span>
                      </div>
-                     <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl text-center transition-all duration-200 hover:dark:bg-white/10">
-                        <span className="block text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Daily Safe to Spend</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">
+                     <div className="bg-white/5 p-3 rounded-xl text-center transition-all duration-200 group-hover:bg-white/10 ring-1 ring-white/5">
+                        <span className="block text-xs uppercase tracking-wider text-white/50 mb-1">Daily Safe to Spend</span>
+                        <span className="font-bold tracking-tight text-white">
                           ${b.dailyAllowance.toFixed(2)}
                         </span>
                      </div>
@@ -191,29 +192,29 @@ export default function BudgetPage() {
 
       {/* Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-gray-700">
-              <h3 className="font-semibold dark:text-white">Set Budget Limit</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl w-full max-w-sm overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/10 relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-4 border-b border-white/10">
+              <h3 className="font-semibold text-white tracking-tight">Set Budget Limit</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-white/50 hover:text-white transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <form onSubmit={handleSaveBudget} className="p-4 space-y-4">
+            <form onSubmit={handleSaveBudget} className="p-5 space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Category</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Category</label>
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md dark:bg-white/5 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full px-3 py-2.5 border rounded-xl bg-black/20 backdrop-blur-md border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
                 >
-                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CATEGORIES.map(c => <option key={c} value={c} className="bg-slate-900">{c}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Monthly Limit ($)</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Monthly Limit ($)</label>
                 <input
                   type="number"
                   min="0.01"
@@ -221,7 +222,7 @@ export default function BudgetPage() {
                   required
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md dark:bg-white/5 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all duration-200"
+                  className="w-full px-3 py-2.5 border rounded-xl bg-black/20 backdrop-blur-md border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 placeholder:text-white/30"
                   placeholder="500.00"
                 />
               </div>
@@ -229,7 +230,7 @@ export default function BudgetPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white rounded-md py-2 mt-2 hover:bg-blue-500/90 dark:hover:bg-blue-500/80 transition-all duration-200 ease-in-out disabled:opacity-50 flex justify-center items-center h-10"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/20 text-white rounded-xl py-2.5 mt-2 transition-all duration-300 ease-in-out disabled:opacity-50 flex justify-center items-center h-11 font-medium"
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Target"}
               </button>
