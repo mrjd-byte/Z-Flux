@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Mail, DollarSign, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X } from "lucide-react";
+import { Loader2, Mail, DollarSign, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck } from "lucide-react";
 
 type ProfileData = {
   email: string;
   income: number;
   wallet: number;
+  walletId: string;
   expenses: number;
 };
 
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const [isEditingIncome, setIsEditingIncome] = useState(false);
   const [editIncomeVal, setEditIncomeVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -78,6 +80,12 @@ export default function ProfilePage() {
     window.location.href = "/";
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -115,6 +123,26 @@ export default function ProfilePage() {
           <div className="flex-1">
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Account Email</h3>
             <p className="text-lg font-semibold mt-1 text-white">{data.email}</p>
+          </div>
+        </div>
+
+        {/* Wallet ID Card */}
+        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 group">
+          <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl ring-1 ring-purple-500/20 transition-all">
+            <Wallet className="w-6 h-6" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Your Wallet ID</h3>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xl font-mono font-bold text-white tracking-widest">{data.walletId}</p>
+              <button 
+                onClick={() => copyToClipboard(data.walletId)}
+                className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-all"
+                title="Copy Wallet ID"
+              >
+                {copied ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         </div>
 

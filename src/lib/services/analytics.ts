@@ -9,6 +9,15 @@ export async function getDashboardAnalytics(userId: string) {
     throw new Error("Data not found");
   }
 
+  // Proactive Sync: Ensure User.walletBalance matches legacy Wallet.balance if it's 0
+  if (user.walletBalance === 0 && wallet.balance > 0) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { walletBalance: wallet.balance }
+    });
+    user.walletBalance = wallet.balance; // Update local ref
+  }
+
   // Fetch recent transactions (top 5) for quick list overview
   const recentTransactions = await prisma.transaction.findMany({
     where: { userId },
@@ -66,7 +75,7 @@ export async function getDashboardAnalytics(userId: string) {
 
   // Processed analytic presentation object
   return {
-    walletBalance: wallet.balance,
+    walletBalance: user.walletBalance,
     monthlyIncome: user.monthlyIncome,
     totalIncomeComputed: totalIncome,
     totalExpenses,

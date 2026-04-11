@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken } from "@/lib/auth";
+import { ensureUniqueWalletId } from "@/lib/wallet_utils";
 
 export async function POST(req: Request) {
   try {
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const walletId = await ensureUniqueWalletId();
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -27,6 +29,8 @@ export async function POST(req: Request) {
           email,
           password: hashedPassword,
           isOnboarded: false,
+          walletId,
+          walletBalance: 0,
         },
       });
 

@@ -9,6 +9,8 @@ type Transaction = {
   type: string;
   category: string;
   description: string;
+  fromWalletId?: string;
+  toWalletId?: string;
   createdAt: string;
 };
 
@@ -22,6 +24,13 @@ export default function TransactionsPage() {
   const [type, setType] = useState("EXPENSE"); // EXPENSE/DEBIT or INCOME/CREDIT
   const [category, setCategory] = useState("Food");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Send Money form states
+  const [targetWalletId, setTargetWalletId] = useState("");
+  const [sendAmount, setSendAmount] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const [sendSuccess, setSendSuccess] = useState("");
 
   const CATEGORIES = ["Food", "Travel", "Shopping", "Bills", "General", "Salary"];
 
@@ -76,6 +85,40 @@ export default function TransactionsPage() {
     }
   };
 
+  const handleSendMoney = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+    setSendError("");
+    setSendSuccess("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/wallet/transfer", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ walletId: targetWalletId, amount: parseFloat(sendAmount) })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSendSuccess("Transfer successful!");
+        setTargetWalletId("");
+        setSendAmount("");
+        fetchTransactions();
+        window.dispatchEvent(new Event("financial-data-updated"));
+      } else {
+        setSendError(data.error || "Transfer failed");
+      }
+    } catch (error) {
+      setSendError("An error occurred");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -89,42 +132,99 @@ export default function TransactionsPage() {
           <span className="text-sm">Add Transaction</span>
         </button>
       </div>
-      
-      <div className="relative overflow-hidden bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] min-h-[400px] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-        {loading ? (
-          <div className="flex items-center justify-center h-48 relative z-10">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-white/50 relative z-10">
-            <p>No transactions found.</p>
-            <p className="text-sm mt-1">Add your first transaction above.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-white/10 relative z-10">
-            {transactions.map((tx) => {
-              const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
-              return (
-                <div key={tx.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-white/5 transition-all duration-200 ease-in-out">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-full ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1)] ${isCredit ? 'bg-green-500/10 text-green-400 ring-green-500/20' : 'bg-red-500/10 text-red-400 ring-red-500/20'}`}>
-                      {isCredit ? <ArrowDownRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> : <ArrowUpRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="relative overflow-hidden bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] min-h-[400px] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
+            {loading ? (
+              <div className="flex items-center justify-center h-48 relative z-10">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-white/50 relative z-10">
+                <p>No transactions found.</p>
+                <p className="text-sm mt-1">Add your first transaction above.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/10 relative z-10">
+                {transactions.map((tx) => {
+                  const isCredit = tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN";
+                  const isTransfer = tx.type.startsWith("TRANSFER");
+                  return (
+                    <div key={tx.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-white/5 transition-all duration-200 ease-in-out">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-full ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1)] ${
+                          isTransfer ? 'bg-indigo-500/10 text-indigo-400 ring-indigo-500/20' :
+                          isCredit ? 'bg-green-500/10 text-green-400 ring-green-500/20' : 
+                          'bg-red-500/10 text-red-400 ring-red-500/20'
+                        }`}>
+                          {isCredit ? <ArrowDownRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> : <ArrowUpRight className="w-5 h-5 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-white tracking-wide">{tx.category}</h4>
+                          <p className="text-xs text-white/50">
+                            {new Date(tx.createdAt).toLocaleDateString()} &middot; {tx.description}
+                            {tx.type === "TRANSFER_IN" && tx.fromWalletId && ` (From: ${tx.fromWalletId})`}
+                            {tx.type === "TRANSFER_OUT" && tx.toWalletId && ` (To: ${tx.toWalletId})`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`font-bold tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
+                        {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-sm text-white tracking-wide">{tx.category}</h4>
-                      <p className="text-xs text-white/50">
-                        {new Date(tx.createdAt).toLocaleDateString()} &middot; {tx.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`font-bold tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
-                    {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <div className="space-y-6">
+          <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] relative overflow-hidden group transition-all duration-300 hover:border-blue-500/30">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <span className="w-2 h-6 bg-blue-500 rounded-full inline-block"></span>
+              Send Money
+            </h3>
+            <form onSubmit={handleSendMoney} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Receiver Wallet ID</label>
+                <input
+                  type="text"
+                  required
+                  value={targetWalletId}
+                  onChange={(e) => setTargetWalletId(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-white/20"
+                  placeholder="ZFXXXXXX"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Amount ($)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  value={sendAmount}
+                  onChange={(e) => setSendAmount(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-white/20"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              {sendError && <p className="text-xs text-red-400 bg-red-400/10 p-2 rounded-lg border border-red-400/20">{sendError}</p>}
+              {sendSuccess && <p className="text-xs text-green-400 bg-green-400/10 p-2 rounded-lg border border-green-400/20">{sendSuccess}</p>}
+
+              <button
+                type="submit"
+                disabled={isSending}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-3 font-semibold shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 flex items-center justify-center h-12"
+              >
+                {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Money"}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
 
       {/* Transaction Modal */}

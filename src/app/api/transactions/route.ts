@@ -59,13 +59,23 @@ export async function POST(req: Request) {
       });
 
       // 2. Adjust Wallet Balance
-      const newBalance = isCredit 
-        ? wallet.balance + numericAmount 
+      const newBalance = isCredit
+        ? wallet.balance + numericAmount
         : wallet.balance - numericAmount;
 
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },
         data: { balance: newBalance },
+      });
+
+      // 3. Keep User.walletBalance in sync
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          walletBalance: isCredit
+            ? { increment: numericAmount }
+            : { decrement: numericAmount }
+        }
       });
 
       return { transaction, balance: updatedWallet.balance };

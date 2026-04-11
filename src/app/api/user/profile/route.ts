@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ensureUniqueWalletId } from "@/lib/wallet_utils";
 
 export async function GET(req: Request) {
   try {
@@ -18,22 +19,41 @@ export async function GET(req: Request) {
 
     const userId = decoded.userId;
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
+    let user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { wallets: true }
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const wallet = await prisma.wallet.findFirst({
-      where: { userId }
-    });
+    const primaryWallet = user.wallets[0];
+
+    // Sync logic: Ensure User.walletBalance matches legacy Wallet.balance if User.walletBalance is 0
+    if (primaryWallet && user.walletBalance === 0 && primaryWallet.balance > 0) {
+      console.log(`[DEBUG] Syncing legacy balance for user ${userId}: ${primaryWallet.balance}`);
+      user = await prisma.user.update({
+        where: { id: userId },
+        data: { walletBalance: primaryWallet.balance },
+        include: { wallets: true }
+      });
+    }
+
+    // Auto-generate walletId for existing users if missing
+    if (!user.walletId) {
+      const newWalletId = await ensureUniqueWalletId();
+      user = await prisma.user.update({
+        where: { id: userId },
+        data: { walletId: newWalletId },
+        include: { wallets: true }
+      });
+    }
 
     const expensesAgg = await prisma.transaction.aggregate({
       where: {
         userId,
-        type: { in: ["EXPENSE", "DEBIT"] }
+        type: { in: ["EXPENSE", "DEBIT", "TRANSFER_OUT"] }
       },
       _sum: { amount: true }
     });
@@ -41,7 +61,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       email: user.email,
       income: user.monthlyIncome,
-      wallet: wallet?.balance || 0,
+      wallet: user.walletBalance,
+      walletId: user.walletId,
       expenses: expensesAgg._sum.amount || 0
     }, { status: 200 });
 

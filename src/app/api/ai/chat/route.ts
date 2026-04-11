@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { getDashboardAnalytics } from "@/lib/services/analytics";
+import { prisma } from "@/lib/prisma"; // 🔥 ADDED
 
 export async function POST(req: Request) {
   try {
@@ -8,8 +9,6 @@ export async function POST(req: Request) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-
 
     const token = authHeader.split(" ")[1];
     const decoded: any = verifyToken(token);
@@ -35,6 +34,20 @@ export async function POST(req: Request) {
     const budgetsData = await budgetsRes.json();
     const budgets = budgetsData.budgets || [];
 
+    // 🔥 FETCH LATEST TRANSACTIONS
+    const latestTransactions = await prisma.transaction.findMany({
+      where: { userId: decoded.userId },
+      orderBy: { createdAt: "desc" },
+      take: 5
+    });
+
+    // 🔥 FORMAT TRANSACTIONS FOR AI
+    const transactionContext = latestTransactions.length
+      ? latestTransactions.map(tx => `
+- ${tx.type} | ${tx.category} | $${tx.amount} | ${tx.description}
+`).join("")
+      : "No recent transactions";
+
     const systemPrompt = `You are Z-Flux, an intelligent personal finance advisor.
 
 Your job is to answer the user's question DIRECTLY using their real financial data.
@@ -47,6 +60,7 @@ STRICT RULES:
 - If the user asks about a category (like shopping, food, travel), focus ONLY on that category
 - If the user asks "can I afford X", give a clear YES/NO with reasoning
 - If risky, suggest a safer alternative or adjustment
+- If user asks about "latest transaction", answer ONLY from transaction history
 
 User Financial Context:
 - Monthly Income: $${analytics.monthlyIncome}
@@ -63,11 +77,11 @@ ${b.category}:
 - Usage: ${b.percentage}%
 `).join("")}
 
+Recent Transactions:
+${transactionContext}
 
 If category remaining < 0 → clearly say it's over budget and by how much.
 Respond like a sharp fintech advisor, not a textbook.`;
-
-
 
     const apiKey = "";
     console.log("API KEY:", apiKey);
@@ -83,11 +97,11 @@ Respond like a sharp fintech advisor, not a textbook.`;
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "http://localhost:3000",   // ✅ REQUIRED
-        "X-Title": "Z-Flux"                        // ✅ REQUIRED
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "Z-Flux"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",              // ✅ FIXED
+        model: "openai/gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message }
