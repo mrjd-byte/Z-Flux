@@ -69,7 +69,7 @@ Respond like a sharp fintech advisor, not a textbook.`;
 
 
 
-    const apiKey = "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";
+    const apiKey = ""; //RECOMMEND CALLING API USING .ENV, HARDCODED API-KEY INCREASE RISK OF DATA-BREACH
     console.log("API KEY:", apiKey);
 
     if (!apiKey) {
