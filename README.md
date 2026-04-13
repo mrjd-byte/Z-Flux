@@ -65,76 +65,8 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 
 ### System Work-Flow
 
-```mermaid
-flowchart LR
-
-%% ================= APP =================
-subgraph App["Z-Flux App"]
-    A1["Add Transaction"]
-    A2["View Dashboard"]
-    A3["Create Budget"]
-    A4["Transfer Money"]
-    A5["Ask AI for Advice"]
-end
-
-%% ================= SYSTEM =================
-subgraph System["Z-Flux System"]
-    S1["Process Request"]
-    S2["Update Financial Data"]
-    S3["Analyze Spending"]
-end
-
-%% ================= DATA =================
-subgraph Data["Secure Data Storage"]
-    D1[("User Data")]
-    D2[("Wallets")]
-    D3[("Transactions")]
-    D4[("Budgets")]
-end
-
-%% ================= AI =================
-subgraph AI["AI Engine"]
-    AI1["Analyze Financial Behavior"]
-    AI2["Generate Insights & Advice"]
-end
-
-%% ================= USER =================
-U["User"]
-
-U --> A1
-U --> A2
-U --> A3
-U --> A4
-U --> A5
-
-%% ================= FLOWS =================
-
-A1 --> S1
-A3 --> S1
-A4 --> S1
-
-S1 --> S2
-
-S2 --> D2
-S2 --> D3
-S2 --> D4
-
-A2 --> S3
-
-S3 --> D1
-S3 --> D3
-S3 --> U
-
-A5 --> AI1
-
-AI1 --> D3
-AI1 --> D4
-AI1 --> AI2
-
-AI2 --> S3
-
-A4 -- Transfer between wallets --> D2
-
+```
+![Z-Flux Workflow](./Images/Z-Flux%20Financial-2026-04-13-094944.png)
 ```
 
 ## 6. Directory Structure
