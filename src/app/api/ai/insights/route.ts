@@ -37,9 +37,9 @@ export async function GET(req: Request) {
     const now = new Date();
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const remainingDays = endOfMonth.getDate() - now.getDate() + 1;
-    if (analytics.remainingBudget > 0 && remainingDays > 0) {
-      const dailySafe = analytics.remainingBudget / remainingDays;
-      rawSignals.push({ message: `Your safe daily spend is $${dailySafe.toFixed(2)} for the remaining ${remainingDays} days.`, type: "good" });
+    if (analytics.savings > 0 && remainingDays > 0) {
+      const dailySafe = analytics.savings / remainingDays;
+      rawSignals.push({ message: `Your safe daily allocation to wallet is $${dailySafe.toFixed(2)} for the remaining ${remainingDays} days.`, type: "good" });
     }
 
     // Rule 3: High Category Check
@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const apiKey = "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";
+    const apiKey = "";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });

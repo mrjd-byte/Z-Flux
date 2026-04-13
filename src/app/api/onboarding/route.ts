@@ -85,11 +85,10 @@ export async function POST(req: Request) {
             }
           });
 
-          // Update Wallet Balance
-          const newBalance = incomeAmount - totalSpent;
+          // Update Wallet Balance (ATOMIC)
           await tx.wallet.update({
             where: { id: wallet.id },
-            data: { balance: newBalance }
+            data: { balance: { increment: incomeAmount - totalSpent } }
           });
         }
       }

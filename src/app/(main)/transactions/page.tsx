@@ -61,7 +61,7 @@ export default function TransactionsPage() {
     
     try {
       const token = localStorage.getItem("token");
-      const mappedType = type === "EXPENSE" ? "DEBIT" : "CREDIT";
+      const mappedType = category === "Salary" && type === "INCOME" ? "SALARY_TO_WALLET" : (type === "EXPENSE" ? "DEBIT" : "CREDIT");
 
       const res = await fetch("/api/transactions", {
         method: "POST",

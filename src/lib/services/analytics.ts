@@ -31,15 +31,19 @@ export async function getDashboardAnalytics(userId: string) {
   });
 
   let totalExpenses = 0;
-  // Calculate total income (using the actual transactions vs just user monthly income)
   let totalIncome = 0; 
+  let totalSalaryTransferred = 0;
   
   const categoryMap: Record<string, number> = {};
   const trendMap: Record<string, number> = {};
 
   for (const tx of allTransactions) {
-    const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE";
-    const isIncome = tx.type === "CREDIT" || tx.type === "INCOME";
+    const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT";
+    const isIncome = tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET";
+
+    if (tx.type === "SALARY_TO_WALLET") {
+      totalSalaryTransferred += tx.amount;
+    }
 
     if (isExpense) {
       totalExpenses += tx.amount;
@@ -71,7 +75,7 @@ export async function getDashboardAnalytics(userId: string) {
       amount: trendMap[key]
     }));
 
-  const remainingBudget = user.monthlyIncome - totalExpenses;
+  const savings = user.monthlyIncome - totalSalaryTransferred;
 
   // Processed analytic presentation object
   return {
@@ -79,7 +83,7 @@ export async function getDashboardAnalytics(userId: string) {
     monthlyIncome: user.monthlyIncome,
     totalIncomeComputed: totalIncome,
     totalExpenses,
-    remainingBudget,
+    savings,
     categoryBreakdown,
     expenseTrend,
     recentTransactions,

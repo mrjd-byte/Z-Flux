@@ -8,7 +8,7 @@ type DashboardData = {
   walletBalance: number;
   monthlyIncome: number;
   totalExpenses: number;
-  remainingBudget: number;
+  savings: number;
   categoryBreakdown: { name: string; value: number }[];
   expenseTrend: { date: string; amount: number }[];
   recentTransactions: any[];
@@ -147,8 +147,8 @@ export default function DashboardPage() {
             <PiggyBank className="w-6 h-6 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
           </div>
           <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Remaining</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.remainingBudget.toFixed(2)}</p>
+            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Savings</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.savings.toFixed(2)}</p>
           </div>
         </div>
       </div>

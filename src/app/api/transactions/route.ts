@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       if (!wallet) throw new Error("Wallet not found");
 
       const numericAmount = Number(amount);
-      const isCredit = type === "CREDIT" || type === "INCOME";
+      const isCredit = type === "CREDIT" || type === "INCOME" || type === "SALARY_TO_WALLET" || type === "TRANSFER_IN";
 
       // 1. Create Transaction
       const transaction = await tx.transaction.create({
@@ -54,21 +54,21 @@ export async function POST(req: Request) {
           amount: numericAmount,
           type,
           category,
-          description: `User added ${category}`,
+          description: type === "SALARY_TO_WALLET" ? "Salary Transfer to Wallet" : `User added ${category}`,
         }
       });
 
-      // 2. Adjust Wallet Balance
-      const newBalance = isCredit
-        ? wallet.balance + numericAmount
-        : wallet.balance - numericAmount;
-
+      // 2. Adjust Wallet Balance (ATOMIC)
       const updatedWallet = await tx.wallet.update({
         where: { id: wallet.id },
-        data: { balance: newBalance },
+        data: { 
+          balance: isCredit 
+            ? { increment: numericAmount } 
+            : { decrement: numericAmount } 
+        },
       });
 
-      // 3. Keep User.walletBalance in sync
+      // 3. Keep User.walletBalance in sync (ATOMIC)
       await tx.user.update({
         where: { id: userId },
         data: {

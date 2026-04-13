@@ -66,15 +66,11 @@ User Financial Context:
 - Monthly Income: $${analytics.monthlyIncome}
 - Wallet Balance: $${analytics.walletBalance}
 - Total Expenses This Month: $${analytics.totalExpenses}
-- Remaining Budget: $${analytics.remainingBudget}
+- Savings: $${analytics.savings}
 
 Category Budgets:
-${budgets.map((b: any) => `
-${b.category}:
-- Limit: $${b.limit}
-- Spent: $${b.spent}
-- Remaining: $${b.remaining}
-- Usage: ${b.percentage}%
+${(budgets || []).slice(0, 3).map((b: any) => `
+${b.category}: spent $${b.spent} / limit $${b.limit}
 `).join("")}
 
 Recent Transactions:
@@ -107,7 +103,7 @@ Respond like a sharp fintech advisor, not a textbook.`;
           { role: "user", content: message }
         ],
         temperature: 0.7,
-        max_tokens: 150
+        max_tokens: 80
       })
     });
 
