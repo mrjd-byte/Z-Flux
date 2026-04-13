@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, Wallet, DollarSign, TrendingDown, PiggyBank, ArrowDownRight, ArrowUpRight, Sparkles, X, AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Loader2, Wallet, IndianRupee, TrendingDown, PiggyBank, ArrowDownRight, ArrowUpRight, Sparkles, X, AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 type DashboardData = {
@@ -118,17 +118,17 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Wallet Balance</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.walletBalance.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.walletBalance.toFixed(2)}</p>
           </div>
         </div>
 
         <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
           <div className="p-3 bg-green-500/10 text-green-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-green-500/20 group-hover:bg-green-500/20 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
-            <DollarSign className="w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+            <IndianRupee className="w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Monthly Income</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.monthlyIncome.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.monthlyIncome.toFixed(2)}</p>
           </div>
         </div>
 
@@ -138,7 +138,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Expenses</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.totalExpenses.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.totalExpenses.toFixed(2)}</p>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Savings</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${data.savings.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.savings.toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -163,10 +163,10 @@ export default function DashboardPage() {
                 <LineChart data={data.expenseTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                   <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Expense']}
+                    formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Expense']}
                   />
                   <Line type="monotone" dataKey="amount" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => `$${value.toFixed(2)}`}
+                    formatter={(value: number) => `₹${value.toFixed(2)}`}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -241,7 +241,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className={`font-bold text-sm tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
-                    {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                    {isCredit ? '+' : '-'}₹{tx.amount.toFixed(2)}
                   </div>
                 </div>
               );

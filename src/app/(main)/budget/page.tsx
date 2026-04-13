@@ -105,7 +105,7 @@ export default function BudgetPage() {
           </div>
           <div className="relative z-10">
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Allocated Limit</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${totalLimit.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{totalLimit.toFixed(2)}</p>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ export default function BudgetPage() {
           </div>
           <div className="relative z-10">
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Spent (Allocated)</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">${totalSpent.toFixed(2)}</p>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{totalSpent.toFixed(2)}</p>
           </div>
         </div>
 
@@ -156,8 +156,8 @@ export default function BudgetPage() {
                     </div>
 
                     <div className="flex justify-between text-sm mb-2">
-                       <span className="text-white/60">Spent: <strong className="text-white">${b.spent.toFixed(2)}</strong></span>
-                       <span className="text-white/60">Limit: <strong className="text-white">${b.limit.toFixed(2)}</strong></span>
+                       <span className="text-white/60">Spent: <strong className="text-white">₹{b.spent.toFixed(2)}</strong></span>
+                       <span className="text-white/60">Limit: <strong className="text-white">₹{b.limit.toFixed(2)}</strong></span>
                     </div>
                     
                     {/* Progress Bar Container */}
@@ -173,13 +173,13 @@ export default function BudgetPage() {
                      <div className="bg-white/5 p-3 rounded-xl text-center transition-all duration-200 group-hover:bg-white/10 ring-1 ring-white/5">
                         <span className="block text-xs uppercase tracking-wider text-white/50 mb-1">Remaining</span>
                         <span className={`font-bold tracking-tight ${b.remaining < 0 ? 'text-red-400' : 'text-white'}`}>
-                          ${b.remaining.toFixed(2)}
+                          ₹{b.remaining.toFixed(2)}
                         </span>
                      </div>
                      <div className="bg-white/5 p-3 rounded-xl text-center transition-all duration-200 group-hover:bg-white/10 ring-1 ring-white/5">
                         <span className="block text-xs uppercase tracking-wider text-white/50 mb-1">Daily Safe to Spend</span>
                         <span className="font-bold tracking-tight text-white">
-                          ${b.dailyAllowance.toFixed(2)}
+                          ₹{b.dailyAllowance.toFixed(2)}
                         </span>
                      </div>
                   </div>
@@ -214,7 +214,7 @@ export default function BudgetPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1.5 text-white/70">Monthly Limit ($)</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Monthly Limit (₹)</label>
                 <input
                   type="number"
                   min="0.01"

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     // Rule 1: Expense to Income Ratio
     if (analytics.monthlyIncome > 0) {
       if (analytics.totalExpenses > analytics.monthlyIncome) {
-        rawSignals.push({ message: `You are overspending by $${(analytics.totalExpenses - analytics.monthlyIncome).toFixed(2)} compared to your income.`, type: "danger" });
+        rawSignals.push({ message: `You are overspending by ₹${(analytics.totalExpenses - analytics.monthlyIncome).toFixed(2)} compared to your income.`, type: "danger" });
       } else if (analytics.totalExpenses > analytics.monthlyIncome * 0.8) {
         rawSignals.push({ message: `You have spent over 80% of your monthly income. Be careful.`, type: "warning" });
       } else if (analytics.totalExpenses < analytics.monthlyIncome * 0.5) {
@@ -39,18 +39,18 @@ export async function GET(req: Request) {
     const remainingDays = endOfMonth.getDate() - now.getDate() + 1;
     if (analytics.savings > 0 && remainingDays > 0) {
       const dailySafe = analytics.savings / remainingDays;
-      rawSignals.push({ message: `Your safe daily allocation to wallet is $${dailySafe.toFixed(2)} for the remaining ${remainingDays} days.`, type: "good" });
+      rawSignals.push({ message: `Your safe daily allocation to wallet is ₹${dailySafe.toFixed(2)} for the remaining ${remainingDays} days.`, type: "good" });
     }
 
     // Rule 3: High Category Check
     if (analytics.categoryBreakdown.length > 0) {
       const topCategory = [...analytics.categoryBreakdown].sort((a, b) => b.value - a.value)[0];
       if (topCategory.value > analytics.monthlyIncome * 0.4) {
-         rawSignals.push({ message: `Your spending on ${topCategory.name} is unusually high at $${topCategory.value.toFixed(2)}.`, type: "warning" });
+         rawSignals.push({ message: `Your spending on ${topCategory.name} is unusually high at ₹${topCategory.value.toFixed(2)}.`, type: "warning" });
       }
     }
 
-    const apiKey = "";
+    const apiKey = "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";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });

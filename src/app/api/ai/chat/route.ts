@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // 🔥 FORMAT TRANSACTIONS FOR AI
     const transactionContext = latestTransactions.length
       ? latestTransactions.map(tx => `
-- ${tx.type} | ${tx.category} | $${tx.amount} | ${tx.description}
+- ${tx.type} | ${tx.category} | ₹${tx.amount} | ${tx.description}
 `).join("")
       : "No recent transactions";
 
@@ -63,14 +63,14 @@ STRICT RULES:
 - If user asks about "latest transaction", answer ONLY from transaction history
 
 User Financial Context:
-- Monthly Income: $${analytics.monthlyIncome}
-- Wallet Balance: $${analytics.walletBalance}
-- Total Expenses This Month: $${analytics.totalExpenses}
-- Savings: $${analytics.savings}
+- Monthly Income: ₹${analytics.monthlyIncome}
+- Wallet Balance: ₹${analytics.walletBalance}
+- Total Expenses This Month: ₹${analytics.totalExpenses}
+- Savings: ₹${analytics.savings}
 
 Category Budgets:
 ${(budgets || []).slice(0, 3).map((b: any) => `
-${b.category}: spent $${b.spent} / limit $${b.limit}
+${b.category}: spent ₹${b.spent} / limit ₹${b.limit}
 `).join("")}
 
 Recent Transactions:
@@ -79,7 +79,7 @@ ${transactionContext}
 If category remaining < 0 → clearly say it's over budget and by how much.
 Respond like a sharp fintech advisor, not a textbook.`;
 
-    const apiKey = "";
+    const apiKey = "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";
     console.log("API KEY:", apiKey);
 
     if (!apiKey) {

@@ -81,7 +81,7 @@ export default function OnboardingPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Monthly Income ($)</label>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Monthly Income (₹)</label>
             <input
               type="number"
               min="0"

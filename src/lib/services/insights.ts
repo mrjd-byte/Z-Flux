@@ -41,7 +41,7 @@ export async function generateInsights(userId: string) {
 
     if (percentage > 1) {
       insights.push(
-        `🚨 Overspent: You have exceeded your ${budget.category} budget by $${(spent - limit).toFixed(2)}.`
+        `🚨 Overspent: You have exceeded your ${budget.category} budget by ₹${(spent - limit).toFixed(2)}.`
       );
     } else if (percentage > 0.8) {
       insights.push(
@@ -63,7 +63,7 @@ export async function generateInsights(userId: string) {
     
     if (savings < 0) {
        insights.push(
-        `🛑 Alert: You are operating at a net loss this month. You have spent $${Math.abs(savings).toFixed(2)} more than your income.`
+        `🛑 Alert: You are operating at a net loss this month. You have spent ₹${Math.abs(savings).toFixed(2)} more than your income.`
        );
     }
   }

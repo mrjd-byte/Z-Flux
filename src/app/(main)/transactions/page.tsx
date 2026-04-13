@@ -170,7 +170,7 @@ export default function TransactionsPage() {
                         </div>
                       </div>
                       <div className={`font-bold tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
-                        {isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                        {isCredit ? '+' : '-'}₹{tx.amount.toFixed(2)}
                       </div>
                     </div>
                   );
@@ -199,7 +199,7 @@ export default function TransactionsPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Amount ($)</label>
+                <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-1.5">Amount (₹)</label>
                 <input
                   type="number"
                   min="0.01"
@@ -240,7 +240,7 @@ export default function TransactionsPage() {
             
             <form onSubmit={handleAddTransaction} className="p-5 space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1.5 text-white/70">Amount ($)</label>
+                <label className="block text-sm font-medium mb-1.5 text-white/70">Amount (₹)</label>
                 <input
                   type="number"
                   min="0.01"

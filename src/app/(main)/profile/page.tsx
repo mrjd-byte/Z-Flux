@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Mail, DollarSign, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck } from "lucide-react";
+import { Loader2, Mail, IndianRupee, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck } from "lucide-react";
 
 type ProfileData = {
   email: string;
@@ -149,7 +149,7 @@ export default function ProfilePage() {
         {/* Income Card */}
         <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 group">
           <div className="p-3 bg-green-500/10 text-green-400 rounded-xl ring-1 ring-green-500/20 transition-all">
-            <DollarSign className="w-6 h-6" />
+            <IndianRupee className="w-6 h-6" />
           </div>
           <div className="flex-1">
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Monthly Income</h3>
@@ -172,7 +172,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="flex items-center justify-between mt-1">
-                <p className="text-2xl font-bold text-white tracking-tight">${data.income.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-white tracking-tight">₹{data.income.toFixed(2)}</p>
                 <button 
                   onClick={() => setIsEditingIncome(true)}
                   className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-all"
@@ -195,7 +195,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Wallet Balance</h3>
-            <p className="text-xl font-bold mt-1 text-white tracking-tight">${data.wallet.toFixed(2)}</p>
+            <p className="text-xl font-bold mt-1 text-white tracking-tight">₹{data.wallet.toFixed(2)}</p>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Expenses</h3>
-            <p className="text-xl font-bold mt-1 text-white tracking-tight">${data.expenses.toFixed(2)}</p>
+            <p className="text-xl font-bold mt-1 text-white tracking-tight">₹{data.expenses.toFixed(2)}</p>
           </div>
         </div>
 
@@ -218,7 +218,7 @@ export default function ProfilePage() {
           <div>
             <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Savings</h3>
             <p className={`text-xl font-bold mt-1 tracking-tight ${savings < 0 ? 'text-red-400' : 'text-white'}`}>
-              ${savings.toFixed(2)}
+              ₹{savings.toFixed(2)}
             </p>
           </div>
         </div>
