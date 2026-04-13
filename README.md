@@ -66,12 +66,9 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 ### System Work-Flow
 
 ```mermaid
----
-config:
-  layout: fixed
----
-flowchart TB
+flowchart LR
 
+%% ================= APP =================
 subgraph App["Z-Flux App"]
     A1["Add Transaction"]
     A2["View Dashboard"]
@@ -80,12 +77,14 @@ subgraph App["Z-Flux App"]
     A5["Ask AI for Advice"]
 end
 
+%% ================= SYSTEM =================
 subgraph System["Z-Flux System"]
     S1["Process Request"]
     S2["Update Financial Data"]
     S3["Analyze Spending"]
 end
 
+%% ================= DATA =================
 subgraph Data["Secure Data Storage"]
     D1[("User Data")]
     D2[("Wallets")]
@@ -93,25 +92,45 @@ subgraph Data["Secure Data Storage"]
     D4[("Budgets")]
 end
 
+%% ================= AI =================
 subgraph AI["AI Engine"]
     AI1["Analyze Financial Behavior"]
     AI2["Generate Insights & Advice"]
 end
 
-U["User"] --> A1 & A2 & A3 & A4 & A5
+%% ================= USER =================
+U["User"]
+
+U --> A1
+U --> A2
+U --> A3
+U --> A4
+U --> A5
+
+%% ================= FLOWS =================
 
 A1 --> S1
 A3 --> S1
 A4 --> S1
 
 S1 --> S2
-S2 --> D2 & D3 & D4
+
+S2 --> D2
+S2 --> D3
+S2 --> D4
 
 A2 --> S3
-S3 --> D1 & D3 & U
+
+S3 --> D1
+S3 --> D3
+S3 --> U
 
 A5 --> AI1
-AI1 --> D3 & D4 & AI2
+
+AI1 --> D3
+AI1 --> D4
+AI1 --> AI2
+
 AI2 --> S3
 
 A4 -- Transfer between wallets --> D2
