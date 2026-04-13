@@ -97,7 +97,7 @@ Respond like a sharp fintech advisor, not a textbook.`;
         "X-Title": "Z-Flux"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "openrouter/auto:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message }

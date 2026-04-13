@@ -63,10 +63,59 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 | AI | gpt-4o-mini (OpenAI) |
 | Database | PostgreSQL + Prisma |
 
-### Architecture Flow
+### System Work-Flow
 
-```
-Architecture flow diagram (placeholder)
+```mermaid
+---
+config:
+  layout: fixed
+---
+flowchart TB
+
+subgraph App["Z-Flux App"]
+    A1["Add Transaction"]
+    A2["View Dashboard"]
+    A3["Create Budget"]
+    A4["Transfer Money"]
+    A5["Ask AI for Advice"]
+end
+
+subgraph System["Z-Flux System"]
+    S1["Process Request"]
+    S2["Update Financial Data"]
+    S3["Analyze Spending"]
+end
+
+subgraph Data["Secure Data Storage"]
+    D1[("User Data")]
+    D2[("Wallets")]
+    D3[("Transactions")]
+    D4[("Budgets")]
+end
+
+subgraph AI["AI Engine"]
+    AI1["Analyze Financial Behavior"]
+    AI2["Generate Insights & Advice"]
+end
+
+U["User"] --> A1 & A2 & A3 & A4 & A5
+
+A1 --> S1
+A3 --> S1
+A4 --> S1
+
+S1 --> S2
+S2 --> D2 & D3 & D4
+
+A2 --> S3
+S3 --> D1 & D3 & U
+
+A5 --> AI1
+AI1 --> D3 & D4 & AI2
+AI2 --> S3
+
+A4 -- Transfer between wallets --> D2
+
 ```
 
 ## 6. Directory Structure

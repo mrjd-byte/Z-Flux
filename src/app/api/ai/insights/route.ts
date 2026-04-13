@@ -72,7 +72,7 @@ Do not return any markdown tags or wrapper strings.`;
         "X-Title": "Z-Flux"
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "openrouter/auto:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: JSON.stringify(rawSignals) }
