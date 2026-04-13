@@ -32,7 +32,7 @@ Z-Flux combines tracking, management, and execution into one powerful platform:
 
 - **Wallet-to-Wallet Transfers** — Move money between your own wallets or send funds to other users securely. Track every transfer with complete transparency.
 
-- **AI-Powered Intelligence** — OpenRouter with Minimax M2.5 analyzes your spending patterns, wallet balances, and transfer history to deliver context-aware financial advice and real-time recommendations.
+- **AI-Powered Intelligence** — gpt-4o-mini (OpenAI) analyzes your spending patterns, wallet balances, and transfer history to deliver context-aware financial advice and real-time recommendations.
 
 - **Real-Time Control** — Every action happens instantly. Add transactions, create budgets, transfer funds, and get AI responses — all in real time with immediate updates across your financial ecosystem.
 
@@ -40,7 +40,7 @@ Z-Flux combines tracking, management, and execution into one powerful platform:
 
 ## 4. Key Features
 
-- **AI-powered financial insights** — Get intelligent analysis of your financial health, spending trends, and money patterns powered by Minimax M2.5 via OpenRouter
+- **AI-powered financial insights** — Get intelligent analysis of your financial health, spending trends, and money patterns powered by gpt-4o-mini (OpenAI).
 - **Budget tracking** — Set, monitor, and adjust budgets across categories with real-time progress tracking and spending alerts
 - **Expense categorization** — Automatically organize transactions into meaningful categories for clear financial visibility
 - **Spending analytics** — Visualize spending patterns with intuitive charts, breakdowns, and trend analysis
@@ -60,8 +60,8 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 |-------|------------|
 | Frontend | React.js, Tailwind CSS |
 | Backend | Node.js, Express.js |
-| AI | OpenRouter API (Minimax M2.5) |
-| Database | MongoDB |
+| AI | gpt-4o-mini (OpenAI) |
+| Database | PostgreSQL + Prisma |
 
 ### Architecture Flow
 
@@ -90,7 +90,7 @@ Z-Flux/
 │   ├── config/               # Database & environment config
 │   ├── controllers/          # Route controllers
 │   ├── middleware/           # Custom middleware (auth, errors)
-│   ├── models/               # Mongoose data models
+│   ├── models/               # Prisma models / database schema
 │   ├── routes/               # API route definitions
 │   ├── services/             # Business logic & AI integration
 │   ├── utils/                # Helper functions
@@ -106,7 +106,7 @@ Z-Flux/
 
 ## 7. Database Schema
 
-Z-Flux uses MongoDB with five primary collections. All documents include automatic `_id` and timestamp fields.
+Z-Flux uses PostgreSQL with Prisma ORM and defines five primary models/tables. Records include automatic id and timestamp fields managed by Prisma.
 
 ### Users
 
@@ -130,15 +130,15 @@ Manages multiple wallets per user with independent balances.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| userId | ObjectId | Reference to Users |
+| userId | UUID | Foreign key referencing Users (Prisma) |
 | walletId | String | Unique wallet identifier |
 | name | String | Wallet name (e.g., "Main", "Savings") |
-| balance | Number | Current wallet balance |
+| balance | Decimal | Current wallet balance |
 | walletType | String | Type: "personal", "savings", "business" |
 | currency | String | Currency code (default: "USD") |
 | isActive | Boolean | Wallet status |
-| createdAt | Date | Wallet creation timestamp |
-| updatedAt | Date | Last balance update |
+| createdAt | DateTime | Wallet creation timestamp (Prisma DateTime) |
+| updatedAt | DateTime | Last balance update |
 
 **Relationship:** Many-to-One with Users, One-to-Many with Transfers (as sender/receiver)
 
@@ -150,14 +150,14 @@ Records all income and expense entries across wallets.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| userId | ObjectId | Reference to Users |
-| walletId | ObjectId | Reference to Wallets |
-| amount | Number | Transaction amount |
+| userId | UUID | Foreign key referencing Users (Prisma) |
+| walletId | UUID | Foreign key referencing Wallets (Prisma) |
+| amount | Decimal | Transaction amount |
 | type | String | "income" or "expense" |
 | category | String | Transaction category |
 | description | String | Optional notes |
-| date | Date | Transaction date |
-| createdAt | Date | Record creation timestamp |
+| date | DateTime | Transaction date |
+| createdAt | DateTime | Record creation timestamp |
 
 **Relationship:** Many-to-One with Users, Many-to-One with Wallets
 
@@ -169,13 +169,13 @@ Manages user-defined budget limits per category.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| userId | ObjectId | Reference to Users |
+| userId | UUID | Foreign key referencing Users (Prisma) |
 | category | String | Budget category |
-| limit | Number | Spending limit |
-| spent | Number | Current amount spent |
+| limit | Decimal | Spending limit |
+| spent | Decimal | Current amount spent |
 | period | String | Period: "monthly", "weekly" |
-| createdAt | Date | Record creation timestamp |
-| updatedAt | Date | Last update timestamp |
+| createdAt | DateTime | Record creation timestamp |
+| updatedAt | DateTime | Last update timestamp |
 
 **Relationship:** Many-to-One with Users
 
@@ -187,13 +187,13 @@ Records all wallet-to-wallet and user-to-user transfers.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| senderWalletId | ObjectId | Reference to sender's Wallet |
-| receiverWalletId | ObjectId | Reference to receiver's Wallet |
-| amount | Number | Transfer amount |
+| senderWalletId | UUID | Foreign key referencing sender's Wallet (Prisma) |
+| receiverWalletId | UUID | Foreign key referencing receiver's Wallet (Prisma) |
+| amount | Decimal | Transfer amount |
 | status | String | "completed", "pending", "failed" |
 | description | String | Optional transfer note |
-| timestamp | Date | Transfer execution time |
-| createdAt | Date | Record creation timestamp |
+| timestamp | DateTime | Transfer execution time |
+| createdAt | DateTime | Record creation timestamp |
 
 **Relationship:** Many-to-One with Wallets (both sender and receiver)
 
@@ -240,7 +240,7 @@ NODE_ENV=development
 DB_URI=mongodb://localhost:27017/zflux
 
 # AI Integration
-OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Authentication
 JWT_SECRET=your_jwt_secret_key_here
@@ -254,22 +254,9 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 ---
 
-### Run Backend
+### Run the project
 
 ```bash
-cd server
-npm install
-npm run dev
-```
-
-Server runs on `http://localhost:5000`
-
----
-
-### Run Frontend
-
-```bash
-cd client
 npm install
 npm run dev
 ```
@@ -284,7 +271,7 @@ Z-Flux implements comprehensive security measures to protect financial data and 
 
 - **Password Hashing** — All user passwords are securely hashed using bcrypt before storage. Plaintext credentials are never saved.
 - **Secure Transactions** — Wallet-to-wallet transfers include validation, status tracking, and atomic balance updates to ensure transaction integrity.
-- **API Key Protection** — All API keys (including OpenRouter) are stored exclusively in server-side environment variables and never exposed to the client.
+- **API Key Protection** — All API keys (including OpenAI) are stored exclusively in server-side environment variables and never exposed to the client.
 - **Environment Variable Protection** — Sensitive credentials are managed through `.env` files excluded from version control via `.gitignore`.
 - **User Data Isolation** — Authentication ensures each user can only access their own wallets, transactions, budgets, and transfer history.
 - **Safe Financial Handling** — Financial data is processed only for app functionality — no sharing with third parties, no unnecessary data collection.
