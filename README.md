@@ -6,6 +6,55 @@ Z-Flux is a full-fledged **AI-powered Finance Super App** that enables users to 
 
 Designed for **students**, **professionals**, and **digital-first users** who want a comprehensive, all-in-one solution for their financial life.
 
+<h2 align="center">📸 App Screenshots</h2>
+
+<br/>
+
+<h3 align="center">🏠 Home</h3>
+<p align="center">
+  <img src="./Images/home.png" width="800"/>
+</p>
+<p align="center"><em>Landing Page</em></p>
+
+---
+
+<h3 align="center">📊 Dashboard</h3>
+<p align="center">
+  <img src="./Images/dashboard.png" width="800"/>
+</p>
+<p align="center"><em>Financial Overview</em></p>
+
+---
+
+<h3 align="center">💸 Transactions</h3>
+<p align="center">
+  <img src="./Images/transactions.png" width="800"/>
+</p>
+<p align="center"><em>Track your spending</em></p>
+
+---
+
+<h3 align="center">📉 Budget</h3>
+<p align="center">
+  <img src="./Images/budget.png" width="800"/>
+</p>
+<p align="center"><em>Manage budgets</em></p>
+
+---
+
+<h3 align="center">🔁 Transfers</h3>
+<p align="center">
+  <img src="./Images/transfers.png" width="800"/>
+</p>
+<p align="center"><em>Wallet to wallet transfer</em></p>
+
+---
+
+<h3 align="center">👤 Profile</h3>
+<p align="center">
+  <img src="./Images/profile.png" width="800"/>
+</p>
+<p align="center"><em>User profile settings</em></p>
 ---
 
 ## 2. Problem
@@ -32,7 +81,7 @@ Z-Flux combines tracking, management, and execution into one powerful platform:
 
 - **Wallet-to-Wallet Transfers** — Move money between your own wallets or send funds to other users securely. Track every transfer with complete transparency.
 
-- **AI-Powered Intelligence** — gpt-4o-mini (OpenAI) analyzes your spending patterns, wallet balances, and transfer history to deliver context-aware financial advice and real-time recommendations.
+- **AI-Powered Intelligence** — AI | OpenRouter (Minimax M2.5) analyzes your spending patterns, wallet balances, and transfer history to deliver context-aware financial advice and real-time recommendations.
 
 - **Real-Time Control** — Every action happens instantly. Add transactions, create budgets, transfer funds, and get AI responses — all in real time with immediate updates across your financial ecosystem.
 
@@ -40,7 +89,7 @@ Z-Flux combines tracking, management, and execution into one powerful platform:
 
 ## 4. Key Features
 
-- **AI-powered financial insights** — Get intelligent analysis of your financial health, spending trends, and money patterns powered by gpt-4o-mini (OpenAI).
+- **AI-powered financial insights** — Get intelligent analysis of your financial health, spending trends, and money patterns powered by AI | OpenRouter (Minimax M2.5).
 - **Budget tracking** — Set, monitor, and adjust budgets across categories with real-time progress tracking and spending alerts
 - **Expense categorization** — Automatically organize transactions into meaningful categories for clear financial visibility
 - **Spending analytics** — Visualize spending patterns with intuitive charts, breakdowns, and trend analysis
@@ -60,12 +109,16 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 |-------|------------|
 | Frontend | React.js, Tailwind CSS |
 | Backend | Node.js, Express.js |
-| AI | gpt-4o-mini (OpenAI) |
+| AI | OpenRouter (Minimax M2.5) |
 | Database | PostgreSQL + Prisma |
 
 ### System Work-Flow
 
-![Z-Flux Workflow](./Images/Z-Flux%20Financial-2026-04-13-094944.png)
+<h3 align="center">⚙️ System Workflow</h3>
+
+<p align="center">
+  <img src="./Images/Z-Flux%20Financial-2026-04-13-094944.png" width="900"/>
+</p>
 
 
 ## 6. Directory Structure
@@ -236,7 +289,7 @@ PORT=5000
 NODE_ENV=development
 
 # Database
-DB_URI=mongodb://localhost:27017/zflux
+DATABASE_URL=postgresql://username:password@localhost:5432/zflux
 
 # AI Integration
 OPENAI_API_KEY=your_openai_api_key_here
