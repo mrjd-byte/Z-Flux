@@ -12,7 +12,7 @@ Designed for **students**, **professionals**, and **digital-first users** who wa
 
 <h3 align="center">🏠 Home</h3>
 <p align="center">
-  <img src="./Images/home.png" width="800"/>
+  <img src="./Images/homepage.png" width="800"/>
 </p>
 <p align="center"><em>Landing Page</em></p>
 
@@ -28,7 +28,7 @@ Designed for **students**, **professionals**, and **digital-first users** who wa
 
 <h3 align="center">💸 Transactions</h3>
 <p align="center">
-  <img src="./Images/transactions.png" width="800"/>
+  <img src="./Images/transaction.png" width="800"/>
 </p>
 <p align="center"><em>Track your spending</em></p>
 
@@ -44,7 +44,7 @@ Designed for **students**, **professionals**, and **digital-first users** who wa
 
 <h3 align="center">🔁 Transfers</h3>
 <p align="center">
-  <img src="./Images/transfers.png" width="800"/>
+  <img src="./Images/advisor.png" width="800"/>
 </p>
 <p align="center"><em>Wallet to wallet transfer</em></p>
 
