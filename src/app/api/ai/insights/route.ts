@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const apiKey = "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";
+    const apiKey = "";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });
