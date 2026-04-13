@@ -65,9 +65,8 @@ Z-Flux uses a modern three-tier architecture optimized for real-time financial o
 
 ### System Work-Flow
 
-```
 ![Z-Flux Workflow](./Images/Z-Flux%20Financial-2026-04-13-094944.png)
-```
+
 
 ## 6. Directory Structure
 
