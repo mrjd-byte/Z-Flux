@@ -42,11 +42,11 @@ Designed for **students**, **professionals**, and **digital-first users** who wa
 
 ---
 
-<h3 align="center">🔁 Transfers</h3>
+<h3 align="center">🔁 AI-Advisor</h3>
 <p align="center">
   <img src="./Images/advisor.png" width="800"/>
 </p>
-<p align="center"><em>Wallet to wallet transfer</em></p>
+<p align="center"><em>AI-Powered Financial Advisor</em></p>
 
 ---
 
@@ -323,8 +323,6 @@ Z-Flux implements comprehensive security measures to protect financial data and 
 
 - **Password Hashing** — All user passwords are securely hashed using bcrypt before storage. Plaintext credentials are never saved.
 - **Secure Transactions** — Wallet-to-wallet transfers include validation, status tracking, and atomic balance updates to ensure transaction integrity.
-- **API Key Protection** — All API keys (including OpenAI) are stored exclusively in server-side environment variables and never exposed to the client.
-- **Environment Variable Protection** — Sensitive credentials are managed through `.env` files excluded from version control via `.gitignore`.
 - **User Data Isolation** — Authentication ensures each user can only access their own wallets, transactions, budgets, and transfer history.
 - **Safe Financial Handling** — Financial data is processed only for app functionality — no sharing with third parties, no unnecessary data collection.
 

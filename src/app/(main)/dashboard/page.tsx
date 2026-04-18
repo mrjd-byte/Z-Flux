@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Loader2, Wallet, IndianRupee, TrendingDown, PiggyBank, ArrowDownRight, ArrowUpRight, Sparkles, X, AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import FinancialHealthCard from "@/components/FinancialHealthCard";
 
 type DashboardData = {
   walletBalance: number;
@@ -12,6 +13,13 @@ type DashboardData = {
   categoryBreakdown: { name: string; value: number }[];
   expenseTrend: { date: string; amount: number }[];
   recentTransactions: any[];
+  financialHealth: {
+    score: number;
+    label: string;
+    aiSummary: string;
+    topCategory: string;
+    prediction: string;
+  };
 };
 
 type InsightData = {
@@ -108,6 +116,11 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Financial Health Section */}
+      {data.financialHealth && (
+        <FinancialHealthCard data={data.financialHealth} />
       )}
       
       {/* 4 Metric Cards */}

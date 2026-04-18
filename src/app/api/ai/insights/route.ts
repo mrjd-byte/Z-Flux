@@ -50,7 +50,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const apiKey = "";
+    const apiKey = ""; //"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";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });
@@ -72,7 +72,7 @@ Do not return any markdown tags or wrapper strings.`;
         "X-Title": "Z-Flux"
       },
       body: JSON.stringify({
-        model: "openrouter/auto:free",
+        model: "openai/gpt-oss-120b:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: JSON.stringify(rawSignals) }

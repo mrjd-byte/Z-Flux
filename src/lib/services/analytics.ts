@@ -76,6 +76,63 @@ export async function getDashboardAnalytics(userId: string) {
     }));
 
   const savings = user.monthlyIncome - totalSalaryTransferred;
+  const remainingBudget = user.monthlyIncome - totalExpenses;
+
+  // Compute Financial Health Score (pure JS)
+  const savingsRate = user.monthlyIncome > 0 ? (remainingBudget / user.monthlyIncome) : 0;
+  const balanceWeight = Math.min(user.walletBalance / (user.monthlyIncome || 1), 1);
+  const rawScore = (savingsRate * 70) + (balanceWeight * 30);
+  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
+
+  let label = "Moderate";
+  if (score >= 80) label = "Excellent";
+  else if (score >= 60) label = "Good";
+  else if (score < 40) label = "Poor";
+
+  const topCategory = categoryBreakdown.length > 0 
+    ? categoryBreakdown.sort((a, b) => b.value - a.value)[0].name 
+    : "None";
+  
+  const prediction = `Projected ₹${(remainingBudget * 6).toFixed(0)} savings in 6 months`;
+
+  // AI Summary (Low Token Usage)
+  let aiSummary = "Financial health looks stable. Keep tracking your expenses to maintain balance.";
+  
+  try {
+    const apiKey = "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";
+    
+    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "Z-Flux"
+      },
+      body: JSON.stringify({
+        model: "openrouter/auto:free",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are a financial advisor. Give: 1 short summary, 1 risk, 1 suggestion. Max 30 words." 
+          },
+          { 
+            role: "user", 
+            content: `User Data: Score: ${score}, Wallet: ₹${user.walletBalance}, Income: ₹${user.monthlyIncome}, Expenses: ₹${totalExpenses}, Remaining: ₹${remainingBudget}` 
+          }
+        ],
+        temperature: 0.5,
+        max_tokens: 60
+      })
+    });
+
+    if (aiResponse.ok) {
+      const aiData = await aiResponse.json();
+      aiSummary = aiData.choices[0]?.message?.content || aiSummary;
+    }
+  } catch (error) {
+    console.error("AI Financial Health Error:", error);
+  }
 
   // Processed analytic presentation object
   return {
@@ -87,5 +144,12 @@ export async function getDashboardAnalytics(userId: string) {
     categoryBreakdown,
     expenseTrend,
     recentTransactions,
+    financialHealth: {
+      score,
+      label,
+      aiSummary,
+      topCategory,
+      prediction
+    }
   };
 }

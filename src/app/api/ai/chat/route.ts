@@ -79,7 +79,7 @@ ${transactionContext}
 If category remaining < 0 → clearly say it's over budget and by how much.
 Respond like a sharp fintech advisor, not a textbook.`;
 
-    const apiKey = "";
+    const apiKey = "";//"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";
     console.log("API KEY:", apiKey);
 
     if (!apiKey) {

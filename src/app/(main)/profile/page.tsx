@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Mail, IndianRupee, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck } from "lucide-react";
+import { Loader2, Mail, IndianRupee, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck, Trash2 } from "lucide-react";
 
 type ProfileData = {
   email: string;
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [editIncomeVal, setEditIncomeVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -80,6 +81,36 @@ export default function ProfilePage() {
     window.location.href = "/";
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "WARNING: This action is permanent and irreversible. All your transactions, groups, and friend data will be deleted. Are you sure you want to proceed?"
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/user/delete", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+      } else {
+        const result = await res.json();
+        alert(result.error || "Failed to delete account");
+      }
+    } catch (error) {
+      console.error("Deletion error:", error);
+      alert("An unexpected error occurred during account deletion.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -102,15 +133,26 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <h1 className="text-3xl font-bold text-white tracking-tight">Profile Settings</h1>
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all ring-1 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="text-sm font-medium">Log Out</span>
-        </button>
+        <div className="flex flex-col gap-2 min-w-[160px]">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-all ring-1 ring-white/10"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Log Out</span>
+          </button>
+          
+          <button 
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all ring-1 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] disabled:opacity-50"
+          >
+            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            <span className="text-sm font-medium">Delete Account</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

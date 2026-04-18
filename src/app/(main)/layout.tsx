@@ -1,17 +1,46 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ArrowLeftRight, PieChart, Sparkles, User } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, PieChart, Sparkles, User, Users, Layers, Rss } from "lucide-react";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const res = await fetch("/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const result = await res.json();
+          setUserEmail(result.email);
+        }
+      } catch (error) {
+        console.error("Failed to load profile for layout:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const initial = userEmail ? userEmail[0].toUpperCase() : "U";
+
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Transactions", href: "/transactions", icon: ArrowLeftRight },
     { name: "Budget", href: "/budget", icon: PieChart },
     { name: "AI Advisor", href: "/ai-advisor", icon: Sparkles },
+    { name: "Friends", href: "/friends", icon: Users },
+    { name: "Groups", href: "/groups", icon: Layers },
+    { name: "Social Feed", href: "/activity", icon: Rss },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
@@ -54,8 +83,26 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8 relative z-10 custom-scrollbar">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 overflow-y-auto relative z-10 custom-scrollbar">
+        {/* Header */}
+        <header className="sticky top-0 z-20 px-8 py-4 bg-slate-950/50 backdrop-blur-md border-b border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-white/40 text-xs font-bold uppercase tracking-[0.2em]">
+             <Sparkles className="w-3.5 h-3.5" />
+             AI Financial Portal
+          </div>
+          <div className="flex items-center gap-4">
+            <NotificationDropdown />
+            <Link 
+              href="/profile"
+              className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold transition-all duration-200 hover:bg-blue-500/30 hover:scale-110 active:scale-95 cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+              title="View Profile"
+            >
+              {initial}
+            </Link>
+          </div>
+        </header>
+
+        <div className="p-8 max-w-6xl mx-auto">
           {children}
         </div>
       </main>
