@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Loader2, UserPlus, Check, X, ShieldAlert, Mail, Clock, UserCheck, Trophy, Eye, EyeOff } from "lucide-react";
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type Friend = {
   id: string;
@@ -177,122 +181,124 @@ export default function FriendsPage() {
   }
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <SectionContainer
+      title="Social Network"
+      subtitle="Connect with friends and track financial standings together"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-start gap-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Friends</h1>
-          <p className="text-white/50 text-sm mt-1">Manage your network and connect with others.</p>
         </div>
 
         {/* Invite Form */}
-        <form onSubmit={sendInvite} className="flex gap-2">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              type="email"
-              placeholder="Friend's email"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-full md:w-64 transition-all"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={inviteLoading}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white rounded-xl text-sm font-medium transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.2)]"
-          >
-            {inviteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-            Invite
-          </button>
-        </form>
+        <GlassCard className="p-2 flex max-w-md w-full">
+          <form onSubmit={sendInvite} className="flex gap-2 w-full">
+            <div className="relative flex-1">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <input
+                type="email"
+                placeholder="Connect via email..."
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                className="pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-base focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium w-full placeholder:text-zinc-600"
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={inviteLoading}
+              className="px-6 py-3 flex items-center gap-2"
+            >
+              {inviteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+              Invite
+            </Button>
+          </form>
+        </GlassCard>
       </div>
 
-      <div className="flex justify-end">
-        <button
+      <div className="flex justify-start">
+        <Button
           onClick={toggleVisibility}
-          className={`text-xs flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-            isScoreVisible 
-              ? "bg-green-500/10 border-green-500/20 text-green-400" 
-              : "bg-white/5 border-white/10 text-white/40"
-          }`}
+          variant={isScoreVisible ? "success" : "secondary"}
+          size="sm"
+          className="text-xs flex items-center gap-2"
         >
           {isScoreVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
           {isScoreVisible ? "Score visible to friends" : "Score hidden from friends"}
-        </button>
+        </Button>
       </div>
 
       {message.text && (
-        <div className={`p-4 rounded-xl border flex gap-3 items-center backdrop-blur-sm ${
-          message.type === "success" 
-            ? "bg-green-500/10 border-green-500/20 text-green-400" 
-            : "bg-red-500/10 border-red-500/20 text-red-400"
-        }`}>
+        <div className={`p-6 rounded-xl border flex gap-3 items-center ${message.type === "success"
+          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+          : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+          }`}>
           {message.type === "success" ? <Check className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-          <p className="text-sm font-medium">{message.text}</p>
+          <p className="text-base font-semibold">{message.text}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Friends List Column */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-green-400" />
-            Your Friends
-          </h2>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center gap-2 text-white border-b border-white/5 pb-4">
+            <UserCheck className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-lg font-bold tracking-tight">Active Network</h2>
+            <span className="ml-auto text-[10px] font-black bg-white/5 px-3 py-1 rounded-full text-zinc-500 uppercase tracking-widest border border-white/5">
+              {friends.length} Friends
+            </span>
+          </div>
+
           {friends.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {friends.map((friend) => (
-                <div key={friend.id} className="p-4 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 hover:border-white/20 transition-all group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold border border-blue-500/20">
-                      {friend.email[0].toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-white font-medium text-sm truncate">{friend.email}</p>
-                      <p className="text-white/30 text-[10px] uppercase font-bold tracking-widest mt-0.5">
-                        Added {new Date(friend.since).toLocaleDateString()}
-                      </p>
-                    </div>
+                <GlassCard key={friend.id} className="p-6 flex items-center gap-6" hoverEffect>
+                  <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.15)]">
+                    {friend.email[0].toUpperCase()}
                   </div>
-                </div>
+                  <div className="min-w-0">
+                    <p className="text-white font-bold text-base truncate tracking-wide">{friend.email}</p>
+                    <p className="text-zinc-500 text-[10px] uppercase font-black tracking-[0.2em] mt-1">
+                      Friend since {new Date(friend.since).toLocaleDateString()}
+                    </p>
+                  </div>
+                </GlassCard>
               ))}
             </div>
           ) : (
-            <div className="p-8 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center">
-              <p className="text-white/30 text-sm">No friends added yet. Start connecting!</p>
-            </div>
+            <GlassCard className="p-12 border-dashed border-white/10 text-center flex flex-col items-center">
+              <p className="text-zinc-500 text-base font-medium italic">Your circle is empty. Start by inviting colleagues or friends.</p>
+            </GlassCard>
           )}
         </div>
 
         {/* Requests Sidebars */}
         <div className="space-y-8">
-          
+
           {/* Incoming Requests */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white tracking-tight">Incoming Requests</h2>
+          <GlassCard className="space-y-4">
+            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Incoming Requests</h2>
             {pendingIncoming.length > 0 ? (
               <div className="space-y-3">
                 {pendingIncoming.map((req) => (
-                  <div key={req.id} className="p-4 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 flex items-center justify-between gap-4">
+                  <div key={req.id} className="p-6 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between gap-6 transition-all hover:bg-white/10">
                     <div className="min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{req.email}</p>
-                      <p className="text-white/40 text-[10px] flex items-center gap-1 mt-0.5">
+                      <p className="text-white text-base font-bold truncate tracking-wide">{req.email}</p>
+                      <p className="text-zinc-500 text-[10px] flex items-center gap-1.5 mt-1 font-black uppercase tracking-widest">
                         <Clock className="w-3 h-3" /> {new Date(req.at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex gap-1">
-                      <button 
+                    <div className="flex gap-2">
+                      <button
                         onClick={() => respondToRequest(req.id, "ACCEPTED")}
-                        className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
+                        className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-500/20 transition-colors"
                         title="Accept"
                       >
                         <Check className="w-4 h-4" />
                       </button>
-                      <button 
-                         onClick={() => respondToRequest(req.id, "REJECTED")}
-                        className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                      <button
+                        onClick={() => respondToRequest(req.id, "REJECTED")}
+                        className="p-2 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-lg hover:bg-rose-500/20 transition-colors"
                         title="Reject"
                       >
                         <X className="w-4 h-4" />
@@ -302,90 +308,90 @@ export default function FriendsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-white/20 text-xs italic">No pending invitations.</p>
+              <div className="p-6 text-center border border-dashed border-white/5 rounded-xl bg-white/5">
+                <p className="text-zinc-600 text-xs italic font-medium">No pending invitations.</p>
+              </div>
             )}
-          </div>
+          </GlassCard>
 
           {/* Sent Requests */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white tracking-tight">Sent Invites</h2>
+          <GlassCard className="space-y-4">
+            <h2 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Sent Invites</h2>
             {sentRequests.length > 0 ? (
               <div className="space-y-3">
                 {sentRequests.map((req) => (
-                  <div key={req.id} className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between gap-4 opacity-80">
+                  <div key={req.id} className="p-6 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between gap-6 opacity-75">
                     <div className="min-w-0">
-                      <p className="text-white/70 text-sm truncate">{req.email}</p>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
-                        req.status === "PENDING" ? "bg-yellow-500/10 text-yellow-500" :
-                        req.status === "REJECTED" ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-500"
-                      }`}>
+                      <p className="text-zinc-300 text-base font-bold truncate tracking-wide">{req.email}</p>
+                      <div className="mt-2 text-[10px] inline-block px-2 py-0.5 rounded-md font-black uppercase tracking-[0.2em] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                         {req.status}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-white/20 text-xs italic">You haven't sent any invites.</p>
+              <div className="p-6 text-center border border-dashed border-white/5 rounded-xl bg-white/5">
+                <p className="text-zinc-600 text-xs italic font-medium">You haven't sent any invites.</p>
+              </div>
             )}
-          </div>
+          </GlassCard>
 
           {/* Leaderboard Section */}
-          <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              Social Leaderboard
-            </h2>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
-               {leaderboardLoading ? (
-                 <div className="p-8 flex justify-center">
-                   <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                 </div>
-               ) : leaderboard.length > 0 ? (
-                 <div className="divide-y divide-white/5">
-                   {leaderboard.map((item) => (
-                     <div 
-                      key={item.email} 
-                      className={`p-4 flex items-center justify-between transition-colors ${
-                        item.isCurrentUser ? "bg-blue-500/10" : "hover:bg-white/5"
-                      }`}
-                     >
-                        <div className="flex items-center gap-4">
-                          <span className={`w-6 text-center font-bold ${
-                            item.rank === 1 ? "text-yellow-400 text-lg" : 
-                            item.rank === 2 ? "text-slate-300" : 
-                            item.rank === 3 ? "text-amber-600" : "text-white/20"
-                          }`}>
-                            {item.rank === 1 ? "🏆" : item.rank === 2 ? "🥈" : item.rank === 3 ? "🥉" : item.rank}
-                          </span>
-                          <div className="min-w-0">
-                            <p className={`text-sm font-medium truncate ${item.isCurrentUser ? "text-blue-400" : "text-white"}`}>
-                              {item.name} {item.isCurrentUser && "(You)"}
-                            </p>
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Financial Health</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-lg font-bold ${
-                            item.score >= 80 ? "text-green-400" : 
-                            item.score >= 60 ? "text-blue-400" : 
-                            item.score >= 40 ? "text-yellow-400" : "text-red-400"
-                          }`}>
-                            {item.score}
-                          </p>
-                        </div>
-                     </div>
-                   ))}
-                 </div>
-               ) : (
-                <div className="p-8 text-center text-white/30 text-sm italic">
-                  No scores available. Add friends to compete!
-                </div>
-               )}
+          <div className="space-y-6 pt-4 border-t border-white/5">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)] rounded-full" />
+              <h2 className="text-lg font-bold text-white tracking-tight">Social Rankings</h2>
             </div>
+
+            <GlassCard className="p-0 overflow-hidden min-h-[300px]">
+              {leaderboardLoading ? (
+                <div className="p-12 flex justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                </div>
+              ) : leaderboard.length > 0 ? (
+                <div className="divide-y divide-white/5">
+                  {leaderboard.map((item) => (
+                    <div
+                      key={item.email}
+                      className={`p-6 flex items-center justify-between transition-colors ${item.isCurrentUser ? "bg-indigo-500/10" : "hover:bg-white/5"
+                        }`}
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border ${item.rank === 1 ? "bg-amber-500/10 text-amber-400 border-amber-500/30" :
+                          item.rank === 2 ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/30" :
+                            item.rank === 3 ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-white/5 text-zinc-500 border-white/10"
+                          }`}>
+                          {item.rank}
+                        </div>
+                        <div className="min-w-0">
+                          <p className={`text-base tracking-wide font-bold truncate ${item.isCurrentUser ? "text-indigo-400" : "text-white"}`}>
+                            {item.name} {item.isCurrentUser && "(You)"}
+                          </p>
+                          <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black mt-0.5">Financial Wellness</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-xl font-bold tracking-tight tabular-nums ${item.score >= 80 ? "text-emerald-400" :
+                          item.score >= 60 ? "text-indigo-400" :
+                            item.score >= 40 ? "text-amber-400" : "text-rose-400"
+                          }`}>
+                          {item.score}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center text-zinc-600">
+                  <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-xs italic font-medium tracking-wide">Competing requires connections. Invite friends to start the rank!</p>
+                </div>
+              )}
+            </GlassCard>
           </div>
         </div>
       </div>
-    </div>
+    </SectionContainer>
   );
 }

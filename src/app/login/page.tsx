@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,46 +48,68 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6 dark:text-white">Log In</h2>
-        
-        {error && <p className="text-red-500 mb-4 text-center text-sm">{error}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white selection:bg-indigo-500/30 p-6 relative overflow-hidden">
+      {/* Background glowing effects copied from homepage */}
+      <div className="fixed inset-0 min-h-screen z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[120px]" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
+      <GlassCard className="max-w-md w-full p-12 relative z-10 group rounded-[2.5rem]">
+        {/* Subtle Brand Accent Glow */}
+        <div className="absolute -top-px left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+
+        <div className="flex flex-col items-center mb-12">
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform duration-500">
+            <span className="text-white font-black text-2xl">Z</span>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1 dark:text-gray-300">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
+          <h2 className="text-4xl font-bold tracking-tight text-white mb-2">Welcome Back</h2>
+          <p className="text-zinc-500 font-medium tracking-wide">Enter To Z-Flux</p>
+        </div>
+
+        {error && (
+          <div className="mb-8 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+            <p className="text-red-400 text-xs font-bold uppercase tracking-widest">{error}</p>
           </div>
-          <button
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="user@gmail.com"
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="••••••••"
+          />
+
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] h-16 mt-6"
+            variant="primary"
           >
-            {loading ? "Logging in..." : "Log In"}
-          </button>
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              "Login"
+            )}
+          </Button>
         </form>
-        
-        <p className="mt-4 text-center text-sm dark:text-gray-400">
-          Don't have an account? <a href="/signup" className="text-blue-500 hover:underline">Sign up</a>
+
+        <p className="mt-12 text-center text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
+          New to Z-FLUX? <a href="/signup" className="text-indigo-400 hover:text-white transition-colors underline underline-offset-4">SIGN UP</a>
         </p>
-      </div>
+      </GlassCard>
     </div>
   );
 }

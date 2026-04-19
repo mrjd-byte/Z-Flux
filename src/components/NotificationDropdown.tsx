@@ -91,26 +91,25 @@ export default function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`p-2 rounded-xl transition-all relative ${
-          isOpen ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white"
-        }`}
+        className={`p-2 rounded-lg transition-all relative ${isOpen ? "bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400" : "text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-600 dark:hover:text-gray-300"
+          }`}
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-slate-950">
+          <span className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden ring-1 ring-white/5">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
-            <h3 className="text-sm font-bold text-white tracking-tight">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-slate-900/50">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-white">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAsRead()}
-                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-colors"
+                className="text-xs font-medium text-blue-600 hover:text-blue-500 transition-colors"
               >
                 Mark all read
               </button>
@@ -120,42 +119,41 @@ export default function NotificationDropdown() {
           <div className="max-h-96 overflow-y-auto custom-scrollbar">
             {loading ? (
               <div className="p-8 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
               </div>
             ) : notifications.length > 0 ? (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {notifications.map((n) => (
                   <div
                     key={n.id}
                     onClick={() => !n.read && markAsRead(n.id)}
-                    className={`p-4 hover:bg-white/5 transition-colors cursor-pointer group flex gap-3 ${
-                      !n.read ? "bg-blue-500/[0.03]" : "opacity-60"
-                    }`}
+                    className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer flex gap-3 ${!n.read ? "bg-blue-50/30 dark:bg-blue-900/5" : "opacity-75"
+                      }`}
                   >
-                    <div className="mt-1 flex-shrink-0 p-2 bg-white/5 rounded-lg border border-white/5 group-hover:scale-110 transition-transform">
+                    <div className="mt-1 flex-shrink-0 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                       {getIcon(n.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs leading-relaxed ${!n.read ? "text-white font-medium" : "text-white/60"}`}>
+                      <p className={`text-base leading-relaxed ${!n.read ? "text-slate-900 dark:text-white font-medium" : "text-gray-500 dark:text-gray-400"}`}>
                         {n.message}
                       </p>
-                      <div className="flex items-center gap-2 mt-1.5 opacity-40">
-                        <Clock className="w-2.5 h-2.5" />
-                        <span className="text-[10px] font-bold uppercase tracking-tighter">
+                      <div className="flex items-center gap-2 mt-1.5 text-gray-400">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-[10px] font-medium uppercase tracking-wider">
                           {new Date(n.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
                     {!n.read && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2" />
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-10 text-center">
-                <Bell className="w-8 h-8 text-white/10 mx-auto mb-2" />
-                <p className="text-white/20 text-xs italic">No new notifications.</p>
+              <div className="p-8 text-center">
+                <Bell className="w-8 h-8 text-gray-200 dark:text-gray-700 mx-auto mb-2" />
+                <p className="text-gray-400 text-base italic">No new notifications.</p>
               </div>
             )}
           </div>

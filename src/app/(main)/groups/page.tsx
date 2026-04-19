@@ -3,6 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Loader2, Plus, Users, ArrowRight, Layers } from "lucide-react";
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type Group = {
   id: string;
@@ -74,61 +78,63 @@ export default function GroupsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <SectionContainer
+      title="Group Wallets"
+      subtitle="Collaborative virtual pools for shared expenses and savings"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Group Wallets</h1>
-          <p className="text-white/50 text-sm mt-1">Shared virtual pools for gifts, rent, or dining.</p>
         </div>
 
-        <form onSubmit={handleCreateGroup} className="flex gap-2">
-          <input
-            type="text"
-            placeholder="New group name"
-            value={newGroupName}
-            onChange={(e) => setNewGroupName(e.target.value)}
-            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-full md:w-64"
-          />
-          <button
-            type="submit"
-            disabled={createLoading}
-            className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.2)] disabled:opacity-50 transition-all"
-          >
-            {createLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-          </button>
-        </form>
+        <GlassCard className="p-2 flex items-center max-w-md w-full">
+          <form onSubmit={handleCreateGroup} className="flex gap-2 w-full">
+            <input
+              type="text"
+              placeholder="Enter pool name..."
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+              className="flex-1 pl-4 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-base focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-medium placeholder:text-zinc-600"
+            />
+            <Button
+              type="submit"
+              disabled={createLoading}
+              className="px-6 py-3 flex items-center gap-2"
+            >
+              {createLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Create
+            </Button>
+          </form>
+        </GlassCard>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {groups.length > 0 ? (
           groups.map((group) => (
-            <Link
-              key={group.id}
-              href={`/groups/${group.id}`}
-              className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:scale-[1.02] transition-all duration-300 group hover:border-blue-500/30"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg group-hover:scale-110 transition-transform">
-                  <Layers className="w-6 h-6" />
+            <Link key={group.id} href={`/groups/${group.id}`}>
+              <GlassCard className="transition-all group" hoverEffect>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl transition-all border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.15)] group-hover:scale-110">
+                    <Layers className="w-6 h-6" />
+                  </div>
+                  <div className="p-2 rounded-full bg-white/5 text-zinc-500 group-hover:text-white group-hover:bg-white/10 transition-colors border border-transparent group-hover:border-white/10">
+                    <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform" />
+                  </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-white/20 group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">{group.name}</h3>
-              <div className="flex items-center gap-2 text-white/40 text-xs font-medium uppercase tracking-wider">
-                <Users className="w-3.5 h-3.5" />
-                {group.memberCount} {group.memberCount === 1 ? "Member" : "Members"}
-              </div>
-              {/* Decorative background element */}
-              <div className="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-blue-600/10 rounded-full blur-2xl group-hover:bg-blue-600/20 transition-all pointer-events-none" />
+                <h3 className="text-xl font-bold text-white mb-2 tracking-tight">{group.name}</h3>
+                <div className="flex items-center gap-2 text-zinc-500 text-xs font-black uppercase tracking-[0.2em] mt-4">
+                  <Users className="w-4 h-4" />
+                  {group.memberCount} {group.memberCount === 1 ? "Contributor" : "Contributors"}
+                </div>
+              </GlassCard>
             </Link>
           ))
         ) : (
-          <div className="col-span-full py-20 text-center bg-white/5 border border-dashed border-white/10 rounded-2xl">
-            <Layers className="w-12 h-12 text-white/10 mx-auto mb-4" />
-            <p className="text-white/40 italic">You don't have any group wallets yet. Create one to start!</p>
-          </div>
+          <GlassCard className="col-span-full py-20 text-center border-dashed border-white/10 flex flex-col items-center">
+            <Layers className="w-16 h-16 text-zinc-700 mb-4" />
+            <p className="text-zinc-500 font-medium italic">Your shared wallets inventory is empty. Launch a new pool to get started!</p>
+          </GlassCard>
         )}
       </div>
-    </div>
+    </SectionContainer>
   );
 }

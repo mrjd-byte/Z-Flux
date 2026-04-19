@@ -5,6 +5,9 @@ import { Loader2, Wallet, IndianRupee, TrendingDown, PiggyBank, ArrowDownRight, 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import FinancialHealthCard from "@/components/FinancialHealthCard";
 
+import { SectionContainer } from "@/components/ui/SectionContainer";
+import { GlassCard } from "@/components/ui/GlassCard";
+
 type DashboardData = {
   walletBalance: number;
   monthlyIncome: number;
@@ -48,8 +51,8 @@ export default function DashboardPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (insightRes.ok) {
-         const insightData = await insightRes.json();
-         setInsights((insightData.insights || []).slice(0, 3));
+        const insightData = await insightRes.json();
+        setInsights((insightData.insights || []).slice(0, 3));
       }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
@@ -72,199 +75,232 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
       </div>
     );
   }
 
   if (!data) {
-    return <div className="text-gray-500 dark:text-gray-400">Failed to load dashboard data.</div>;
+    return <div className="text-zinc-500">Failed to load dashboard data.</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-white tracking-tight">Overview</h1>
+    <SectionContainer
+      title="Your Dashboard"
+    >
 
-      {/* AI Insights Section */}
-      {insights.length > 0 && (
-        <div className="space-y-4 mb-4">
-          <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> 
-            AI Insights
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {insights.map((insight, idx) => {
-              let colors = "";
-              let Icon = Sparkles;
-              if (insight.type === "danger") {
-                colors = "bg-red-500/10 border-red-500/20 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]";
-                Icon = AlertCircle;
-              } else if (insight.type === "warning") {
-                colors = "bg-yellow-500/10 border-yellow-500/20 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.1)]";
-                Icon = AlertTriangle;
-              } else {
-                colors = "bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]";
-                Icon = CheckCircle2;
-              }
-              
-              return (
-                <div key={idx} className={`p-4 rounded-xl border ${colors} flex gap-3 hover:scale-[1.02] transition-all duration-200 items-start backdrop-blur-sm`}>
-                  <Icon className="w-5 h-5 shrink-0 mt-0.5 opacity-90" />
-                  <p className="text-sm font-medium text-white/90 leading-relaxed">{insight.message}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Financial Health Section */}
+      {/* Financial Health Integration */}
       {data.financialHealth && (
         <FinancialHealthCard data={data.financialHealth} />
       )}
-      
-      {/* 4 Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-blue-500/20 group-hover:bg-blue-500/20 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] transition-all">
-            <Wallet className="w-6 h-6 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-          </div>
-          <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Wallet Balance</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.walletBalance.toFixed(2)}</p>
-          </div>
-        </div>
 
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <div className="p-3 bg-green-500/10 text-green-400 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.15)] ring-1 ring-green-500/20 group-hover:bg-green-500/20 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
-            <IndianRupee className="w-6 h-6 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          </div>
-          <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Monthly Income</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.monthlyIncome.toFixed(2)}</p>
-          </div>
+{/* Analytics Section - Refactored to Glass Hub */}
+      <div className="mt-12 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl">
+        <div className="p-10 border-b border-white/5 bg-white/[0.02]">
+          <h2 className="text-xl font-bold text-white tracking-wide uppercase ">Financial Overview</h2>
         </div>
+        <div className="p-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <div className="p-3 bg-red-500/10 text-red-400 rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.15)] ring-1 ring-red-500/20 group-hover:bg-red-500/20 group-hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] transition-all">
-            <TrendingDown className="w-6 h-6 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-          </div>
-          <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Expenses</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.totalExpenses.toFixed(2)}</p>
-          </div>
-        </div>
+            {/* Trend Chart */}
+            <div className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-6 bg-indigo-500 rounded-full" />
+                <h3 className="text-lg font-black text-zinc-500 uppercase tracking-[0.2em]">Expense Flow</h3>
+              </div>
+              <div className="h-[300px] w-full">
+                {data.expenseTrend.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data.expenseTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="date" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tick={{ dy: 10 }} />
+                      <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: '1.5rem',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          backgroundColor: '#0a0a0a',
+                          backdropFilter: 'blur(16px)',
+                          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+                        }}
+                        itemStyle={{ fontSize: '12px', fontWeight: '700', color: '#818cf8' }}
+                        labelStyle={{ fontSize: '10px', color: '#71717a', marginBottom: '4px', textTransform: 'uppercase', fontWeight: '900', letterSpacing: '0.1em' }}
+                        formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Value']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="amount"
+                        stroke="#818cf8"
+                        strokeWidth={4}
+                        dot={false}
+                        activeDot={{ r: 6, fill: '#818cf8', stroke: 'white', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-zinc-600 text-xs font-bold uppercase tracking-widest italic bg-white/5 rounded-3xl">No signal data</div>
+                )}
+              </div>
+            </div>
 
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 hover:scale-[1.01] transition-all duration-300 group before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.15)] ring-1 ring-purple-500/20 group-hover:bg-purple-500/20 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all">
-            <PiggyBank className="w-6 h-6 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
-          </div>
-          <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Savings</h3>
-            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.savings.toFixed(2)}</p>
+            {/* Category Pie */}
+            <div className="space-y-8">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-6 bg-blue-500 rounded-full" />
+                <h3 className="text-lg font-black text-zinc-500 uppercase tracking-[0.2em]">Spending Breakdown</h3>
+              </div>
+              <div className="h-[300px] w-full flex items-center justify-center">
+                {data.categoryBreakdown.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.categoryBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={85}
+                        outerRadius={110}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {data.categoryBreakdown.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0.3)" strokeWidth={2} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: '1.5rem',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          backgroundColor: '#0a0a0a',
+                          backdropFilter: 'blur(16px)'
+                        }}
+                        itemStyle={{ fontSize: '12px', fontWeight: '700' }}
+                        formatter={(value: any) => `₹${Number(value).toFixed(2)}`}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-zinc-600 text-xs font-bold uppercase tracking-widest italic bg-white/5 rounded-3xl w-full">Empty Sector</div>
+                )}
+              </div>
+              {/* Custom Legend */}
+              <div className="flex flex-wrap justify-center gap-6 pt-4">
+                {data.categoryBreakdown.map((entry, index) => (
+                  <div key={entry.name} className="flex items-center gap-2 text-[10px] text-zinc-400 font-black uppercase tracking-[0.1em]">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                    {entry.name}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <h3 className="text-lg font-semibold text-white mb-6 tracking-tight relative z-10">Expense Trend</h3>
-          <div className="h-[250px] relative z-10">
-            {data.expenseTrend.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.expenseTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Expense']}
-                  />
-                  <Line type="monotone" dataKey="amount" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">No trend data available</div>
-            )}
-          </div>
-        </div>
+      {/* Metrics Section */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: "Wallet Balance", value: data.walletBalance, icon: Wallet, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+          { label: "Monthly Income", value: data.monthlyIncome, icon: IndianRupee, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Total Expenses", value: data.totalExpenses, icon: TrendingDown, color: "text-rose-400", bg: "bg-rose-500/10" },
+          { label: "Projected Savings", value: data.savings, icon: PiggyBank, color: "text-sky-400", bg: "bg-sky-500/10" }
+        ].map((metric, idx) => (
+          <GlassCard key={idx} hoverEffect>
+            <div className={`w-12 h-12 rounded-2xl ${metric.bg}flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-white/5`}>
+              <metric.icon className={`mt-3 ml-3 w-6 h-6 ${metric.color}`} />
+            </div>
+            <h3 className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] mb-3">{metric.label}</h3>
+            <p className="text-3xl font-bold text-white tracking-tighter tabular-nums">
+              ₹{metric.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </GlassCard>
+        ))}
+      </div>
 
-        <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-          <h3 className="text-lg font-semibold text-white mb-6 tracking-tight relative z-10">Category Breakdown</h3>
-          <div className="h-[250px] relative z-10">
-             {data.categoryBreakdown.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.categoryBreakdown}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {data.categoryBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number) => `₹${value.toFixed(2)}`}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-             ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">No expenses to breakdown</div>
-             )}
-          </div>
-          {/* Custom Legend */}
-          {data.categoryBreakdown.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-3 mt-4">
-              {data.categoryBreakdown.map((entry, index) => (
-                <div key={entry.name} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                  {entry.name}
-                </div>
+      
+
+      
+
+      
+
+
+      {/* AI Insights Section - Redesigned like Homepage CTA */}
+      {insights.length > 0 && (
+        <div className="mt-12 relative overflow-hidden rounded-3xl p-10 md:p-12 bg-gradient-to-br from-indigo-900/40 via-[#0a0a0a] to-black border border-white/10 shadow-2xl">
+          {/* Internal glowing blobs for premium feel */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-[-50px] left-[-50px] w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">AI-Insights</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {insights.map((insight, idx) => (
+                <GlassCard key={idx} hoverEffect className="p-6">
+                  <div className="flex items-start gap-6">
+                    <div className="mt-1 p-2 bg-indigo-500/10 rounded-xl group-hover:scale-110 transition-transform">
+                      {insight.type === "danger" ? <AlertCircle className="w-4 h-4 text-red-400" /> :
+                        insight.type === "warning" ? <AlertTriangle className="w-4 h-4 text-amber-400" /> :
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                    </div>
+                    <div>
+                      {/* <h4 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Module {idx + 1}</h4> */}
+                      <p className="text-base font-semibold text-zinc-300 leading-relaxed">{insight.message}</p>
+                    </div>
+                  </div>
+                </GlassCard>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
+      {/* Activity Log - Refactored to Glass List */}
+      <div className="mt-12 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden relative">
+        <div className="p-10 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
+          <h3 className="text-lg font-bold text-white tracking-wide uppercase">Recent Transactions</h3>
+          <span className="text-[10px] font-black bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-500/20">
+            Live Feed
+          </span>
+        </div>
+        <div className="px-10 py-6">
+          {data.recentTransactions.length > 0 ? (
+            <div className="divide-y divide-white/5">
+              {data.recentTransactions.map((tx) => {
+                const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
+                return (
+                  <div key={tx.id} className="py-6 flex items-center justify-between hover:bg-white/5 transition-all px-4 rounded-2xl -mx-4 group">
+                    <div className="flex items-center gap-6">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isCredit ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} group-hover:scale-110 border border-white/5`}>
+                        {isCredit ? <ArrowDownRight className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-base text-white tracking-wide uppercase">{tx.category || "Network Operation"}</h4>
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                          {new Date(tx.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`text-xl font-bold tracking-tight tabular-nums ${isCredit ? 'text-emerald-400' : 'text-white'}`}>
+                      {isCredit ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-20 text-center text-zinc-600 text-base font-bold uppercase tracking-[0.2em] italic">No detected transactions in this cycle.</div>
           )}
         </div>
       </div>
-
-      {/* Recent Transactions List */}
-      <div className="relative overflow-hidden p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:pointer-events-none">
-        <h3 className="text-lg font-semibold text-white mb-6 tracking-tight relative z-10">Recent Transactions</h3>
-        {data.recentTransactions.length > 0 ? (
-          <div className="divide-y divide-white/10 relative z-10">
-            {data.recentTransactions.map((tx) => {
-              const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
-              return (
-                <div key={tx.id} className="py-4 px-2 -mx-2 first:pt-0 last:pb-0 flex items-center justify-between rounded-lg hover:bg-white/5 transition-all duration-200 ease-in-out">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-full ring-1 shadow-[0_0_15px_rgba(0,0,0,0.1)] ${isCredit ? 'bg-green-500/10 text-green-400 ring-green-500/20' : 'bg-red-500/10 text-red-400 ring-red-500/20'}`}>
-                      {isCredit ? <ArrowDownRight className="w-4 h-4 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> : <ArrowUpRight className="w-4 h-4 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm text-white tracking-wide">{tx.category || "General"}</h4>
-                      <p className="text-xs text-white/50">
-                        {new Date(tx.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`font-bold text-sm tracking-tight ${isCredit ? 'text-green-400' : 'text-white'}`}>
-                    {isCredit ? '+' : '-'}₹{tx.amount.toFixed(2)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-white/50 text-sm italic relative z-10">No recent transactions to display.</div>
-        )}
-      </div>
-
-    </div>
+    </SectionContainer>
   );
 }

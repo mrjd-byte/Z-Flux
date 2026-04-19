@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Mail, IndianRupee, Wallet, TrendingDown, PiggyBank, Edit2, LogOut, Check, X, Copy, CheckCheck, Trash2 } from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { Button } from "@/components/ui/Button";
+import { SectionContainer } from "@/components/ui/SectionContainer";
 
 type ProfileData = {
   email: string;
@@ -14,7 +17,7 @@ type ProfileData = {
 export default function ProfilePage() {
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const [isEditingIncome, setIsEditingIncome] = useState(false);
   const [editIncomeVal, setEditIncomeVal] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -56,9 +59,9 @@ export default function ProfilePage() {
       const token = localStorage.getItem("token");
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ income: newIncome })
       });
@@ -132,141 +135,146 @@ export default function ProfilePage() {
   const savings = data.income - data.expenses;
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div className="flex items-start justify-between">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Profile Settings</h1>
-        <div className="flex flex-col gap-2 min-w-[160px]">
-          <button 
+    <SectionContainer
+      title="Profile Settings"
+      subtitle="Manage your account details and financial preferences"
+      className="max-w-4xl mx-auto pb-10"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+        </div>
+        <div className="flex flex-row gap-3">
+          <Button
             onClick={handleLogout}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-all ring-1 ring-white/10"
+            variant="secondary"
           >
-            <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Log Out</span>
-          </button>
-          
-          <button 
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+
+          <Button
             onClick={handleDeleteAccount}
             disabled={isDeleting}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-all ring-1 ring-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)] disabled:opacity-50"
+            variant="danger"
           >
-            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-            <span className="text-sm font-medium">Delete Account</span>
-          </button>
+            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+            Delete Account
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+
         {/* Email Card */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 group">
-          <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl ring-1 ring-blue-500/20 transition-all">
+        <GlassCard className="flex items-center gap-5 p-6">
+          <div className="p-6 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
             <Mail className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Account Email</h3>
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Account Identification</h3>
             <p className="text-lg font-semibold mt-1 text-white">{data.email}</p>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Wallet ID Card */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 group">
-          <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl ring-1 ring-purple-500/20 transition-all">
+        <GlassCard className="flex items-center gap-5 p-6">
+          <div className="p-6 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
             <Wallet className="w-6 h-6" />
           </div>
-          <div className="flex-1">
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Your Wallet ID</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Public Wallet ID</h3>
             <div className="flex items-center justify-between mt-1">
-              <p className="text-xl font-mono font-bold text-white tracking-widest">{data.walletId}</p>
-              <button 
+              <p className="text-xl font-mono font-bold text-white tracking-widest truncate">{data.walletId}</p>
+              <button
                 onClick={() => copyToClipboard(data.walletId)}
-                className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-all"
+                className="ml-4 p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-all border border-white/10"
                 title="Copy Wallet ID"
               >
-                {copied ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                {copied ? <CheckCheck className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Income Card */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4 group">
-          <div className="p-3 bg-green-500/10 text-green-400 rounded-xl ring-1 ring-green-500/20 transition-all">
+        <GlassCard className="flex items-center gap-5 p-6">
+          <div className="p-6 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
             <IndianRupee className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Monthly Income</h3>
-            
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Expected Income</h3>
+
             {isEditingIncome ? (
-              <div className="flex items-center gap-2 mt-1">
-                <input 
-                  type="number" 
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="number"
                   value={editIncomeVal}
                   onChange={e => setEditIncomeVal(e.target.value)}
-                  className="w-32 bg-black/20 border border-white/10 rounded-md px-2 py-1 text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white outline-none focus:ring-1 focus:ring-indigo-500/50 font-semibold"
                   autoFocus
                 />
-                <button disabled={isSaving} onClick={handleSaveIncome} className="text-green-400 hover:bg-green-500/10 p-1.5 rounded-md transition-colors disabled:opacity-50">
+                <button disabled={isSaving} onClick={handleSaveIncome} className="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition-colors disabled:opacity-50">
                   {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 </button>
-                <button disabled={isSaving} onClick={() => { setIsEditingIncome(false); setEditIncomeVal(data.income.toString()); }} className="text-red-400 hover:bg-red-500/10 p-1.5 rounded-md transition-colors disabled:opacity-50">
+                <button disabled={isSaving} onClick={() => { setIsEditingIncome(false); setEditIncomeVal(data.income.toString()); }} className="bg-white/5 text-zinc-400 hover:text-white p-2 rounded-xl transition-colors disabled:opacity-50 border border-white/10">
                   <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <div className="flex items-center justify-between mt-1">
                 <p className="text-2xl font-bold text-white tracking-tight">₹{data.income.toFixed(2)}</p>
-                <button 
+                <button
                   onClick={() => setIsEditingIncome(true)}
-                  className="text-white/50 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-lg transition-all"
+                  className="p-2 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-all border border-white/10"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </GlassCard>
 
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+      <div className="pt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+
         {/* Wallet Balance */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4">
-          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl ring-1 ring-indigo-500/20">
+        <GlassCard className="flex flex-col items-center text-center space-y-3 p-6 md:p-8">
+          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Wallet Balance</h3>
-            <p className="text-xl font-bold mt-1 text-white tracking-tight">₹{data.wallet.toFixed(2)}</p>
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Available Balance</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.wallet.toFixed(2)}</p>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Expenses */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4">
-          <div className="p-3 bg-red-500/10 text-red-400 rounded-xl ring-1 ring-red-500/20">
+        <GlassCard className="flex flex-col items-center text-center space-y-3 p-6 md:p-8">
+          <div className="p-3 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20">
             <TrendingDown className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Expenses</h3>
-            <p className="text-xl font-bold mt-1 text-white tracking-tight">₹{data.expenses.toFixed(2)}</p>
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Cumulative Expenses</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight">₹{data.expenses.toFixed(2)}</p>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Savings */}
-        <div className="p-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center gap-4">
-          <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl ring-1 ring-purple-500/20">
+        <GlassCard className="flex flex-col items-center text-center space-y-3 p-6 md:p-8">
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
             <PiggyBank className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-white/60 text-xs font-medium uppercase tracking-wider">Savings</h3>
-            <p className={`text-xl font-bold mt-1 tracking-tight ${savings < 0 ? 'text-red-400' : 'text-white'}`}>
+            <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Net Surplus</h3>
+            <p className={`text-2xl font-bold mt-1 tracking-tight ${savings < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
               ₹{savings.toFixed(2)}
             </p>
           </div>
-        </div>
+        </GlassCard>
 
       </div>
 
-    </div>
+    </SectionContainer>
   );
 }
