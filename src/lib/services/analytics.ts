@@ -64,8 +64,8 @@ export async function getDashboardAnalytics(userId: string) {
   const trendMap: Record<string, number> = {};
 
   for (const tx of allTransactions) {
-    const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT";
-    const isIncome = tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET";
+    const isExpense = tx.senderId ? (userId === tx.senderId) : (tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT");
+    const isIncome = tx.receiverId ? (userId === tx.receiverId) : (tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET");
     const isThisMonth = tx.createdAt >= startOfMonth;
 
     if (tx.type === "SALARY_TO_WALLET") {
@@ -106,7 +106,7 @@ export async function getDashboardAnalytics(userId: string) {
   const currentWeekCategoryMap: Record<string, number> = {};
 
   for (const tx of allTransactions) {
-    const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT";
+    const isExpense = tx.senderId ? (userId === tx.senderId) : (tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT");
     if (isExpense) {
       if (tx.createdAt >= oneWeekAgo) {
         currentWeekExpenses += tx.amount;
@@ -316,4 +316,29 @@ export async function getDashboardAnalytics(userId: string) {
       prediction
     }
   };
+}
+
+export async function getFriendSharedActivity(userId: string, friendId: string) {
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId: userId,
+      OR: [
+        { senderId: userId, receiverId: friendId },
+        { senderId: friendId, receiverId: userId }
+      ]
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10
+  });
+
+  return transactions.map(tx => ({
+    id: tx.id,
+    type: "TRANSFER" as const,
+    amount: Math.abs(tx.amount),
+    senderId: tx.senderId,
+    receiverId: tx.receiverId,
+    title: tx.senderId === userId ? "Transferred Out" : "Transferred In",
+    createdAt: tx.createdAt.toISOString(),
+    email: tx.senderId === userId ? "You" : "Friend" 
+  }));
 }

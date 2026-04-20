@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isInsightXaiOpen, setIsInsightXaiOpen] = useState(false);
   const [activeInsight, setActiveInsight] = useState<any>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { addInsight } = useInsightToast();
 
   const fetchDashboard = useCallback(async () => {
@@ -66,6 +67,13 @@ export default function DashboardPage() {
       });
       const result = await res.json();
       if (res.ok) setData(result);
+
+      // Fetch user profile for relative sign computation
+      const userRes = await fetch("/api/user/profile", {
+         headers: { Authorization: `Bearer ${token}` }
+      });
+      const userData = await userRes.json();
+      if (userData.id) setCurrentUserId(userData.id);
 
       // Fetch companion AI Insights
       const insightRes = await fetch("/api/ai/insights", {
@@ -362,7 +370,11 @@ export default function DashboardPage() {
           {data.recentTransactions.length > 0 ? (
             <div className="divide-y divide-white/5">
               {data.recentTransactions.map((tx: any) => {
-                const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
+                // Relative Sign Computation
+                const isCredit = tx.receiverId 
+                  ? (currentUserId === tx.receiverId) 
+                  : (tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET");
+                
                 return (
                   <div key={tx.id} className="py-6 flex items-center justify-between hover:bg-white/5 transition-all px-4 rounded-2xl -mx-4 group">
                     <div className="flex items-center gap-6">
@@ -377,7 +389,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className={`text-xl font-bold tracking-tight tabular-nums ${isCredit ? 'text-emerald-400' : 'text-white'}`}>
-                      {isCredit ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                      {isCredit ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString()}
                     </div>
                   </div>
                 );

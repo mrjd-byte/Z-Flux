@@ -46,7 +46,10 @@ model Transaction {
   type        String   // e.g., "INCOME", "EXPENSE", "TRANSFER_IN", "TRANSFER_OUT"
   description String   @default("")
   category    String   @default("General")
+  subtype     String?
   userId      String
+  senderId    String?
+  receiverId  String?
   walletId    String
   fromWalletId String?
   toWalletId   String?

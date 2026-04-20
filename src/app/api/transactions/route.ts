@@ -16,12 +16,29 @@ export async function GET(req: Request) {
     const userId = authenticate(req);
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const { searchParams } = new URL(req.url);
+    const friendId = searchParams.get("friendId");
+
+    const where: any = { userId };
+    if (friendId) {
+      where.OR = [
+        { senderId: userId, receiverId: friendId },
+        { senderId: friendId, receiverId: userId }
+      ];
+    }
+
     const transactions = await prisma.transaction.findMany({
-      where: { userId },
+      where,
       orderBy: { createdAt: 'desc' },
     });
 
-    return NextResponse.json({ transactions });
+    // Backward fix: Ensure amounts are positive
+    const sanitizedTransactions = transactions.map(tx => ({
+      ...tx,
+      amount: Math.abs(tx.amount)
+    }));
+
+    return NextResponse.json({ transactions: sanitizedTransactions });
   } catch (error) {
     console.error("GET /api/transactions error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -43,7 +60,7 @@ export async function POST(req: Request) {
       const wallet = await tx.wallet.findFirst({ where: { userId } });
       if (!wallet) throw new Error("Wallet not found");
 
-      const numericAmount = Number(amount);
+      const numericAmount = Math.abs(Number(amount));
       const isCredit = type === "CREDIT" || type === "INCOME" || type === "SALARY_TO_WALLET" || type === "TRANSFER_IN";
 
       // 1. Create Transaction
@@ -54,6 +71,8 @@ export async function POST(req: Request) {
           amount: numericAmount,
           type,
           category,
+          senderId: isCredit ? null : userId,
+          receiverId: isCredit ? userId : null,
           description: type === "SALARY_TO_WALLET" ? "Salary Transfer to Wallet" : `User added ${category}`,
         }
       });

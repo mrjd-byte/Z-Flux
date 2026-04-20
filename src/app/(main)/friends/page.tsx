@@ -43,11 +43,13 @@ type LeaderboardItem = {
 };
 
 type SharedActivity = {
-  type: "CONTRIBUTION" | "EXPENSE";
+  type: "CONTRIBUTION" | "EXPENSE" | "TRANSFER";
   amount: number;
   title?: string;
   email: string;
   createdAt: string;
+  senderId?: string;
+  receiverId?: string;
 };
 
 export default function FriendsPage() {
@@ -69,6 +71,12 @@ export default function FriendsPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [sharedStats, setSharedStats] = useState<{ owesYou: number; youOwe: number; activity: SharedActivity[] } | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [isGroupProtocolsOpen, setIsGroupProtocolsOpen] = useState(false);
+  const [sharedGroupsDetails, setSharedGroupsDetails] = useState<any[]>([]);
+  const [transferAmount, setTransferAmount] = useState("");
+  const [transferLoading, setTransferLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -112,6 +120,15 @@ export default function FriendsPage() {
   }, []);
 
   useEffect(() => {
+    const fetchUser = async () => {
+       const token = localStorage.getItem("token");
+       const res = await fetch("/api/user/profile", {
+         headers: { Authorization: `Bearer ${token}` }
+       });
+       const data = await res.json();
+       if (data.id) setCurrentUserId(data.id);
+    };
+    fetchUser();
     fetchFriends();
     fetchLeaderboard();
   }, [fetchFriends, fetchLeaderboard]);
@@ -196,6 +213,7 @@ export default function FriendsPage() {
       let totalOwesYou = 0;
       let totalYouOwe = 0;
       let combinedActivity: SharedActivity[] = [];
+      let shared: any[] = [];
 
       if (groupsRes.ok) {
         for (const group of groupsData.groups) {
@@ -205,35 +223,92 @@ export default function FriendsPage() {
           const detail = await detailRes.json();
           
           if (detail.members?.some((m: any) => m.email === friend.email)) {
-            // Find financial relation in this group
-            const mySettlement = detail.settlements?.find((s: any) => s.email === "You" || s.isCurrentUser); // Heuristic
-            // Actually API returns settlesment from user perspective sometimes.
-            // Let's check based on email comparison.
             const friendSettlement = detail.settlements?.find((s: any) => s.email === friend.email);
+            const mySettlement = detail.settlements?.find((s: any) => s.email === "You" || s.isCurrentUser);
             
             if (friendSettlement) {
               if (friendSettlement.owes > 0) totalOwesYou += friendSettlement.owes;
               else if (friendSettlement.owes < 0) totalYouOwe += Math.abs(friendSettlement.owes);
             }
 
-            // Filter shared activity in this group
+            shared.push({
+              id: group.id,
+              name: group.name,
+              yourBalance: mySettlement ? -mySettlement.owes : 0,
+              friendBalance: friendSettlement ? -friendSettlement.owes : 0
+            });
+
             if (detail.activity) {
-              const shared = detail.activity.filter((a: any) => a.email === friend.email || a.email === "You");
-              combinedActivity = [...combinedActivity, ...shared];
+              const sharedAct = detail.activity.filter((a: any) => a.email === friend.email || a.email === "You");
+              combinedActivity = [...combinedActivity, ...sharedAct];
             }
           }
         }
       }
       
+      // 🔥 NEW: Fetch direct shared transactions
+      const directRes = await fetch(`/api/transactions?friendId=${friend.friendId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      let directActivity = [];
+      if (directRes.ok) {
+        const directData = await directRes.json();
+        directActivity = directData.transactions.map((tx: any) => ({
+          type: "TRANSFER",
+          amount: Math.abs(tx.amount),
+          senderId: tx.senderId,
+          receiverId: tx.receiverId,
+          title: tx.senderId === currentUserId ? "Direct Payment Sent" : "Direct Payment Received",
+          email: tx.senderId === currentUserId ? "You" : friend.email,
+          createdAt: tx.createdAt
+        }));
+      }
+
+      setSharedGroupsDetails(shared);
       setSharedStats({
         owesYou: totalOwesYou,
         youOwe: totalYouOwe,
-        activity: combinedActivity.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10)
+        activity: [...combinedActivity, ...directActivity]
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 10)
       });
     } catch (error) {
       console.error("Fetch details error:", error);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const handleOpenTransferModal = () => {
+    setTransferAmount("");
+    setIsTransferring(true);
+  };
+
+  const handleTransferSubmit = async () => {
+    if (!selectedFriend || !transferAmount) return;
+    setTransferLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/friends/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          friendId: selectedFriend.friendId,
+          amount: parseFloat(transferAmount)
+        })
+      });
+      if (res.ok) {
+        showToast("Transfer successful");
+        setIsTransferring(false);
+        fetchFriendDetails(selectedFriend);
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to transfer", "error");
+      }
+    } catch (error) {
+      showToast("Connection error", "error");
+    } finally {
+      setTransferLoading(false);
     }
   };
 
@@ -524,7 +599,7 @@ export default function FriendsPage() {
                   {/* Section 1: Financial Relation */}
                   <div className="space-y-6">
                     <h4 className="text-[10px] font-black text-white uppercase tracking-[0.4em] flex items-center gap-2">
-                       <Handshake className="w-4 h-4 text-amber-500" /> Liquidity Standings
+                       <ArrowRight className="w-4 h-4 text-amber-500" /> Flux Standings
                     </h4>
                     
                     {/* AI Relationship Insight Tag */}
@@ -537,9 +612,9 @@ export default function FriendsPage() {
                         <Sparkles className="w-4 h-4" />
                         <span className="text-[10px] font-black uppercase tracking-widest">
                           AI Insight: {
-                            sharedStats.owesYou > sharedStats.youOwe + 10 ? `This friend owes you ₹${(sharedStats.owesYou - sharedStats.youOwe).toFixed(2)}` :
-                            sharedStats.youOwe > sharedStats.owesYou + 10 ? "You mostly pay for this friend" :
-                            "You are financially balanced"
+                            sharedStats.owesYou > sharedStats.youOwe + 10 ? `You have received ₹${(sharedStats.owesYou - sharedStats.youOwe).toFixed(2)} more from this partner` :
+                            sharedStats.youOwe > sharedStats.owesYou + 10 ? "You have transferred more quants to this partner" :
+                            "Transfer parity detected"
                           }
                         </span>
                       </div>
@@ -547,11 +622,11 @@ export default function FriendsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <GlassCard className="p-8 bg-emerald-500/5 border-emerald-500/10">
-                        <p className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">They are authorized to pay you</p>
+                        <p className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Total Quants Received</p>
                         <p className="text-4xl font-bold text-emerald-400 tabular-nums">₹{sharedStats?.owesYou.toFixed(2) || "0.00"}</p>
                       </GlassCard>
                       <GlassCard className="p-8 bg-rose-500/5 border-rose-500/10">
-                        <p className="text-[10px] font-black text-rose-400/60 uppercase tracking-widest mb-1">You are authorized to pay them</p>
+                        <p className="text-[10px] font-black text-rose-400/60 uppercase tracking-widest mb-1">Total Quants Sent</p>
                         <p className="text-4xl font-bold text-rose-400 tabular-nums">₹{sharedStats?.youOwe.toFixed(2) || "0.00"}</p>
                       </GlassCard>
                     </div>
@@ -582,9 +657,9 @@ export default function FriendsPage() {
                             </div>
                           </div>
                           <p className={`text-xl font-bold font-mono tracking-tighter ${
-                            op.type === "CONTRIBUTION" ? "text-emerald-400" : "text-rose-400"
+                            (op.type === "CONTRIBUTION" || (op.type === "TRANSFER" && op.receiverId === currentUserId)) ? "text-emerald-400" : "text-rose-400"
                           }`}>
-                            {op.type === "CONTRIBUTION" ? "+" : "-"}₹{op.amount.toFixed(2)}
+                            {(op.type === "CONTRIBUTION" || (op.type === "TRANSFER" && op.receiverId === currentUserId)) ? "+" : "-"}₹{op.amount.toFixed(2)}
                           </p>
                         </div>
                       )) : (
@@ -595,13 +670,25 @@ export default function FriendsPage() {
 
                   {/* Section 3: Actions */}
                   <div className="pt-8 border-t border-white/5 flex flex-wrap gap-4">
-                    <Button variant="primary" className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest">
-                       Authorize Settlement
+                    <Button 
+                      onClick={() => handleOpenTransferModal()}
+                      variant="primary" 
+                      className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest"
+                    >
+                       Send Money
                     </Button>
-                    <Button variant="ghost" className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400 transition-all">
+                    <Button 
+                      onClick={() => handleOpenTransferModal()}
+                      variant="ghost" 
+                      className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400 transition-all"
+                    >
                        Transfer Quants
                     </Button>
-                    <Button variant="ghost" className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-white/10">
+                    <Button 
+                      onClick={() => setIsGroupProtocolsOpen(true)}
+                      variant="ghost" 
+                      className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-white/10"
+                    >
                        View Group Protocols
                     </Button>
                   </div>
@@ -615,6 +702,99 @@ export default function FriendsPage() {
           </GlassCard>
         </div>
       )}
+      {/* --- DIRECT TRANSFER MODAL --- */}
+      {isTransferring && selectedFriend && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+          <GlassCard className="max-w-md w-full p-10 space-y-8 border-white/10 relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <button onClick={() => setIsTransferring(false)} className="absolute top-6 right-6 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
+            <div className="text-center space-y-4">
+               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-indigo-500/20 text-indigo-400">
+                  <ArrowRight className="w-10 h-10" />
+               </div>
+               <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Send money to {selectedFriend.email.split('@')[0]}</h3>
+               <p className="text-zinc-500 text-sm italic">Direct Peer-to-Peer Transfer</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Amount (₹)</label>
+                <div className="relative">
+                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-zinc-600">₹</div>
+                  <input 
+                    type="number"
+                    value={transferAmount}
+                    onChange={(e) => setTransferAmount(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 pl-12 pr-6 text-4xl font-bold text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleTransferSubmit}
+                disabled={transferLoading}
+                className="w-full py-6 text-base font-black uppercase tracking-[0.2em] shadow-xl bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20"
+              >
+                {transferLoading ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Send Money"}
+              </Button>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* --- GROUP PROTOCOLS MODAL --- */}
+      {isGroupProtocolsOpen && selectedFriend && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+          <GlassCard className="max-w-2xl w-full h-[60vh] flex flex-col p-0 overflow-hidden border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+               <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                 <ShieldAlert className="w-6 h-6 text-indigo-400" /> Shared Group Protocols
+               </h3>
+               <button onClick={() => setIsGroupProtocolsOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-6 h-6" /></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+              {sharedGroupsDetails.length > 0 ? sharedGroupsDetails.map((group) => {
+                const net = group.yourBalance - group.friendBalance;
+                return (
+                  <GlassCard key={group.id} className="p-6 transition-all hover:bg-white/5 border-white/5">
+                    <div className="flex justify-between items-start mb-6">
+                      <h4 className="text-lg font-bold text-white uppercase tracking-tight">{group.name}</h4>
+                      <Link href={`/groups/${group.id}/settlement`}>
+                        <Button variant="ghost" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10">Settle via Group</Button>
+                      </Link>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="p-4 bg-white/5 rounded-2xl text-center">
+                        <span className="block text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Your Standing</span>
+                        <span className={`text-lg font-bold ${group.yourBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>₹{Math.abs(group.yourBalance).toFixed(2)}</span>
+                      </div>
+                      <div className="p-4 bg-white/5 rounded-2xl text-center">
+                        <span className="block text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Friend Standing</span>
+                        <span className={`text-lg font-bold ${group.friendBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>₹{Math.abs(group.friendBalance).toFixed(2)}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 border-t border-white/5">
+                      <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <Sparkles className="w-3 h-3" /> AI Protocol Layer: {
+                          net > 0 ? "You are owed more in this group" :
+                          net < 0 ? "You owe more in this group" :
+                          "Balance parity detected"
+                        }
+                      </p>
+                    </div>
+                  </GlassCard>
+                );
+              }) : (
+                <div className="py-20 text-center opacity-30 italic font-medium">No shared groups detected between participants.</div>
+              )}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
     </SectionContainer>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, ArrowUpRight, X, Loader2, Sparkles, History, ArrowDownRight } from "lucide-react";
+import { Plus, ArrowUpRight, X, Loader2, Sparkles, History, ArrowDownLeft, ArrowDownRight } from "lucide-react";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,8 @@ type Transaction = {
   type: string;
   category: string;
   description: string;
+  senderId?: string | null;
+  receiverId?: string | null;
   fromWalletId?: string;
   toWalletId?: string;
   createdAt: string;
@@ -52,7 +54,20 @@ export default function TransactionsPage() {
 
 const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
 
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
   useEffect(() => {
+    // Basic extraction from token if available, but for now we'll rely on the API context
+    // or fetch from /api/user/profile if needed. 
+    // To match the user's "Strict" requirement, we need the current user's ID.
+    const fetchUser = async () => {
+       const res = await fetch("/api/user/profile", {
+         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+       });
+       const data = await res.json();
+       if (data.id) setCurrentUserId(data.id);
+    };
+    fetchUser();
     fetchTransactions();
   }, []);
 
@@ -194,21 +209,39 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
               ) : (
                 <div className="divide-y divide-white/5">
                   {filteredTransactions.map((tx) => {
-                    const isCredit = tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET";
+                    const isTransfer = tx.type === "TRANSFER" || tx.type === "TRANSFER_IN" || tx.type === "TRANSFER_OUT" || tx.type === "SETTLEMENT";
+                    
+                    // Relative Sign Computation
+                    // If senderId/receiverId exist, use role-based logic.
+                    // Otherwise, fall back to legacy type-based logic.
+                    const isCredit = tx.receiverId 
+                      ? (currentUserId === tx.receiverId) 
+                      : (tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET" || (tx.type === "SETTLEMENT" && tx.amount > 0));
+                    
+                    const icon = isCredit ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />;
+                    const colorClass = isCredit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400";
+                    
+                    let title = (tx.type === "SETTLEMENT" || tx.type === "TRANSFER" || tx.type === "TRANSFER_IN" || tx.type === "TRANSFER_OUT") ? "Transfer" : (tx.category || "Network Op");
+                    if (isTransfer) {
+                       title = isCredit ? "Transfer Received" : "Transfer Sent";
+                    }
+
                     return (
                       <div key={tx.id} className="p-8 flex items-center justify-between hover:bg-white/5 transition-all group px-10">
                         <div className="flex items-center gap-8">
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all border border-white/5 ${isCredit ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} group-hover:scale-110 group-hover:rotate-3`}>
-                            {isCredit ? <ArrowDownRight className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all border border-white/5 ${colorClass} group-hover:scale-110 group-hover:rotate-3`}>
+                            {icon}
                           </div>
                           <div className="space-y-1.5">
-                            <h4 className="font-bold text-base text-white tracking-wide uppercase">{tx.category || "Network Op"}</h4>
+                            <h4 className="font-bold text-base text-white tracking-wide uppercase">{title}</h4>
                             <div className="flex items-center gap-3">
                               <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{new Date(tx.createdAt).toLocaleDateString()}</p>
                               {tx.description && (
                                 <>
                                   <span className="w-1 h-1 rounded-full bg-white/10" />
-                                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest opacity-60 truncate max-w-[150px]">{tx.description}</p>
+                                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest opacity-60 truncate max-w-[150px]">
+                                    {tx.description.replace("Settlement payment", "Transfer")}
+                                  </p>
                                 </>
                               )}
                             </div>
@@ -216,11 +249,11 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
                         </div>
                         <div className="text-right space-y-2">
                           <div className={`text-2xl font-bold tracking-tighter tabular-nums ${isCredit ? 'text-emerald-400' : 'text-white'}`}>
-                            {isCredit ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                            {isCredit ? '+' : '-'}₹{Math.abs(tx.amount).toLocaleString()}
                           </div>
                           <div className="flex justify-end">
                             <span className="text-[9px] font-black text-zinc-600 bg-white/5 px-2 py-0.5 rounded-md uppercase tracking-[0.1em] border border-white/5">
-                              {tx.type.replace(/_/g, ' ')}
+                              {tx.type === "SETTLEMENT" ? "TRANSFER" : tx.type.replace(/_/g, ' ')}
                             </span>
                           </div>
                         </div>
