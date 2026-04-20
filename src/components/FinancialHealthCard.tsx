@@ -62,9 +62,9 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
         {/* Left column: Score Circle */}
         <div className="flex flex-col items-center gap-6 shrink-0">
           <h3 className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3">
-            <Target className="w-4 h-4 text-indigo-400" /> Vitality Index
+            <Target className="w-4 h-4 text-indigo-400" /> Financial Health
           </h3>
-          <button 
+          <button
             onClick={() => setIsXaiOpen(true)}
             className="text-[8px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded-full text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
           >
@@ -98,7 +98,7 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-5xl font-bold text-white tracking-tighter tabular-nums">{data.score}</span>
-              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">Units</span>
+              <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">POINTS</span>
             </div>
           </div>
           <span className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] border backdrop-blur-md shadow-lg ${getLabelColor(data.label)}`}>
@@ -136,7 +136,7 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1">Pulse Outlook</p>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mb-1">Savings Forecast</p>
                 <p className="text-xl font-bold text-white tracking-tight">{data.prediction.replace('Projected ', '')}</p>
               </div>
             </div>
@@ -145,10 +145,10 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
       </div>
 
       {data.scoreExplanation && (
-        <ScoreExplanationModal 
-          isOpen={isXaiOpen} 
-          onClose={() => setIsXaiOpen(false)} 
-          explanation={data.scoreExplanation} 
+        <ScoreExplanationModal
+          isOpen={isXaiOpen}
+          onClose={() => setIsXaiOpen(false)}
+          explanation={data.scoreExplanation}
         />
       )}
     </div>

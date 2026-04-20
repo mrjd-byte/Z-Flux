@@ -2,15 +2,16 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { 
-  Loader2, UserPlus, Check, X, ShieldAlert, Mail, Clock, 
-  UserCheck, Trophy, Eye, EyeOff, Search, ChevronDown, 
-  ChevronUp, UserMinus, Info, Handshake, IndianRupee, 
+import {
+  Loader2, UserPlus, Check, X, ShieldAlert, Mail, Clock,
+  UserCheck, Trophy, Eye, EyeOff, Search, ChevronDown,
+  ChevronUp, UserMinus, Info, Handshake, IndianRupee,
   TrendingUp, TrendingDown, ArrowRight, History, Sparkles
 } from "lucide-react";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
+import { useSmartFeedback } from "@/context/SmartFeedbackContext";
 
 type Friend = {
   id: string;
@@ -62,7 +63,7 @@ export default function FriendsPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
   const [isScoreVisible, setIsScoreVisible] = useState(true);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
-  
+
   // UI States
   const [searchQuery, setSearchQuery] = useState("");
   const [isIncomingOpen, setIsIncomingOpen] = useState(false);
@@ -77,6 +78,7 @@ export default function FriendsPage() {
   const [transferAmount, setTransferAmount] = useState("");
   const [transferLoading, setTransferLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { triggerFeedback } = useSmartFeedback();
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type });
@@ -121,12 +123,12 @@ export default function FriendsPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-       const token = localStorage.getItem("token");
-       const res = await fetch("/api/user/profile", {
-         headers: { Authorization: `Bearer ${token}` }
-       });
-       const data = await res.json();
-       if (data.id) setCurrentUserId(data.id);
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/user/profile", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.id) setCurrentUserId(data.id);
     };
     fetchUser();
     fetchFriends();
@@ -209,7 +211,7 @@ export default function FriendsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const groupsData = await groupsRes.json();
-      
+
       let totalOwesYou = 0;
       let totalYouOwe = 0;
       let combinedActivity: SharedActivity[] = [];
@@ -221,11 +223,11 @@ export default function FriendsPage() {
             headers: { Authorization: `Bearer ${token}` }
           });
           const detail = await detailRes.json();
-          
+
           if (detail.members?.some((m: any) => m.email === friend.email)) {
             const friendSettlement = detail.settlements?.find((s: any) => s.email === friend.email);
             const mySettlement = detail.settlements?.find((s: any) => s.email === "You" || s.isCurrentUser);
-            
+
             if (friendSettlement) {
               if (friendSettlement.owes > 0) totalOwesYou += friendSettlement.owes;
               else if (friendSettlement.owes < 0) totalYouOwe += Math.abs(friendSettlement.owes);
@@ -245,7 +247,7 @@ export default function FriendsPage() {
           }
         }
       }
-      
+
       // 🔥 NEW: Fetch direct shared transactions
       const directRes = await fetch(`/api/transactions?friendId=${friend.friendId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -298,9 +300,19 @@ export default function FriendsPage() {
         })
       });
       if (res.ok) {
-        showToast("Transfer successful");
+        showToast("Direct transfer successful");
         setIsTransferring(false);
-        fetchFriendDetails(selectedFriend);
+        setTransferAmount("");
+        fetchFriends();
+        if (selectedFriend) fetchFriendDetails(selectedFriend);
+        window.dispatchEvent(new Event("financial-data-updated"));
+
+        // Trigger Cinematic Smart Feedback
+        triggerFeedback({
+          type: "TRANSFER",
+          amount: parseFloat(transferAmount),
+          friendName: selectedFriend.email.split('@')[0]
+        });
       } else {
         const data = await res.json();
         showToast(data.error || "Failed to transfer", "error");
@@ -348,19 +360,18 @@ export default function FriendsPage() {
     >
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border animate-in slide-in-from-top-4 duration-300 flex items-center gap-3 backdrop-blur-xl ${
-          toast.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-400"
-        }`}>
+        <div className={`fixed top-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 rounded-2xl shadow-2xl border animate-in slide-in-from-top-4 duration-300 flex items-center gap-3 backdrop-blur-xl ${toast.type === "success" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+          }`}>
           {toast.type === "success" ? <Check className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
           <span className="font-bold tracking-wide">{toast.message}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-        
+
         {/* LEFT COLUMN: Main Dashboard */}
         <div className="lg:col-span-2 space-y-10">
-          
+
           {/* Top Actions: Search + Invite */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GlassCard className="p-2 flex items-center">
@@ -401,7 +412,7 @@ export default function FriendsPage() {
             {(pendingIncoming.length > 0 || sentRequests.length > 0) && (
               <div className="space-y-4">
                 <GlassCard className="p-0 overflow-hidden border-indigo-500/10">
-                  <button 
+                  <button
                     onClick={() => setIsIncomingOpen(!isIncomingOpen)}
                     className="w-full p-6 flex items-center justify-between text-white hover:bg-white/5 transition-colors"
                   >
@@ -431,7 +442,7 @@ export default function FriendsPage() {
                 </GlassCard>
 
                 <GlassCard className="p-0 overflow-hidden border-indigo-500/10">
-                  <button 
+                  <button
                     onClick={() => setIsSentOpen(!isSentOpen)}
                     className="w-full p-6 flex items-center justify-between text-white hover:bg-white/5 transition-colors"
                   >
@@ -472,8 +483,8 @@ export default function FriendsPage() {
             {filteredFriends.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredFriends.map((friend) => (
-                  <div 
-                    key={friend.id} 
+                  <div
+                    key={friend.id}
                     onClick={() => fetchFriendDetails(friend)}
                     className="cursor-pointer group relative"
                   >
@@ -517,21 +528,20 @@ export default function FriendsPage() {
                 {isScoreVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
             </div>
-            
+
             <div className="max-h-[600px] overflow-y-auto custom-scrollbar divide-y divide-white/5">
               {leaderboardLoading ? (
                 <div className="p-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
               ) : syncedLeaderboard.map((item) => (
-                <div 
-                  key={item.email} 
+                <div
+                  key={item.email}
                   className={`p-5 flex items-center justify-between transition-all ${item.isCurrentUser ? 'bg-indigo-500/10' : 'hover:bg-white/5'}`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] border ${
-                      item.rank === 1 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]' :
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] border ${item.rank === 1 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]' :
                       item.rank === 2 ? 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' :
-                      item.rank === 3 ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-white/5 text-zinc-500 border-white/10'
-                    }`}>
+                        item.rank === 3 ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-white/5 text-zinc-500 border-white/10'
+                      }`}>
                       {item.rank}
                     </div>
                     <div className="min-w-0">
@@ -541,10 +551,9 @@ export default function FriendsPage() {
                       <p className="text-[8px] text-zinc-600 font-black uppercase tracking-[0.2em] mt-0.5">Wellness Quotient</p>
                     </div>
                   </div>
-                  <p className={`text-base font-black tabular-nums ${
-                    item.score >= 80 ? 'text-emerald-400' : 
+                  <p className={`text-base font-black tabular-nums ${item.score >= 80 ? 'text-emerald-400' :
                     item.score >= 50 ? 'text-indigo-400' : 'text-zinc-600'
-                  }`}>
+                    }`}>
                     {item.score}
                   </p>
                 </div>
@@ -563,7 +572,7 @@ export default function FriendsPage() {
       {selectedFriend && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
           <GlassCard className="max-w-4xl w-full h-[80vh] flex flex-col overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border-white/10 relative">
-            
+
             {/* Modal Header */}
             <div className="p-8 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-6">
@@ -578,7 +587,7 @@ export default function FriendsPage() {
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedFriend(null)}
                 className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-zinc-500 hover:text-white transition-all border border-white/10"
               >
@@ -588,7 +597,7 @@ export default function FriendsPage() {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
-              
+
               {detailLoading ? (
                 <div className="flex flex-col items-center justify-center h-full gap-4 text-zinc-500">
                   <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
@@ -599,22 +608,21 @@ export default function FriendsPage() {
                   {/* Section 1: Financial Relation */}
                   <div className="space-y-6">
                     <h4 className="text-[10px] font-black text-white uppercase tracking-[0.4em] flex items-center gap-2">
-                       <ArrowRight className="w-4 h-4 text-amber-500" /> Flux Standings
+                      <ArrowRight className="w-4 h-4 text-amber-500" /> Flux Standings
                     </h4>
-                    
+
                     {/* AI Relationship Insight Tag */}
                     {sharedStats && (
-                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border ${
-                        sharedStats.owesYou > sharedStats.youOwe + 10 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
+                      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border ${sharedStats.owesYou > sharedStats.youOwe + 10 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
                         sharedStats.youOwe > sharedStats.owesYou + 10 ? "bg-rose-500/10 border-rose-500/20 text-rose-400" :
-                        "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
-                      }`}>
+                          "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+                        }`}>
                         <Sparkles className="w-4 h-4" />
                         <span className="text-[10px] font-black uppercase tracking-widest">
                           AI Insight: {
                             sharedStats.owesYou > sharedStats.youOwe + 10 ? `You have received ₹${(sharedStats.owesYou - sharedStats.youOwe).toFixed(2)} more from this partner` :
-                            sharedStats.youOwe > sharedStats.owesYou + 10 ? "You have transferred more quants to this partner" :
-                            "Transfer parity detected"
+                              sharedStats.youOwe > sharedStats.owesYou + 10 ? "You have transferred more quants to this partner" :
+                                "Transfer parity detected"
                           }
                         </span>
                       </div>
@@ -644,9 +652,8 @@ export default function FriendsPage() {
                       {sharedStats?.activity.length ? sharedStats.activity.map((op, idx) => (
                         <div key={idx} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-colors">
                           <div className="flex items-center gap-5">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 ${
-                              op.type === "CONTRIBUTION" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
-                            }`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 ${op.type === "CONTRIBUTION" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
+                              }`}>
                               {op.type === "CONTRIBUTION" ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
                             </div>
                             <div>
@@ -656,9 +663,8 @@ export default function FriendsPage() {
                               </p>
                             </div>
                           </div>
-                          <p className={`text-xl font-bold font-mono tracking-tighter ${
-                            (op.type === "CONTRIBUTION" || (op.type === "TRANSFER" && op.receiverId === currentUserId)) ? "text-emerald-400" : "text-rose-400"
-                          }`}>
+                          <p className={`text-xl font-bold font-mono tracking-tighter ${(op.type === "CONTRIBUTION" || (op.type === "TRANSFER" && op.receiverId === currentUserId)) ? "text-emerald-400" : "text-rose-400"
+                            }`}>
                             {(op.type === "CONTRIBUTION" || (op.type === "TRANSFER" && op.receiverId === currentUserId)) ? "+" : "-"}₹{op.amount.toFixed(2)}
                           </p>
                         </div>
@@ -670,34 +676,34 @@ export default function FriendsPage() {
 
                   {/* Section 3: Actions */}
                   <div className="pt-8 border-t border-white/5 flex flex-wrap gap-4">
-                    <Button 
+                    <Button
                       onClick={() => handleOpenTransferModal()}
-                      variant="primary" 
+                      variant="primary"
                       className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest"
                     >
-                       Send Money
+                      Send Money
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => handleOpenTransferModal()}
-                      variant="ghost" 
+                      variant="ghost"
                       className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-indigo-500/10 hover:text-indigo-400 transition-all"
                     >
-                       Transfer Quants
+                      Transfer Quants
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => setIsGroupProtocolsOpen(true)}
-                      variant="ghost" 
+                      variant="ghost"
                       className="flex-1 py-6 gap-2 text-sm font-black uppercase tracking-widest border-white/10 hover:bg-white/10"
                     >
-                       View Group Protocols
+                      View Group Protocols
                     </Button>
                   </div>
                 </>
               )}
             </div>
-            
+
             <div className="p-4 bg-white/[0.02] border-t border-white/10 text-center">
-               <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[1em]">Z-Flux Nexus Protocol v2.5</p>
+              <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[1em]">Z-Flux Nexus Protocol v2.5</p>
             </div>
           </GlassCard>
         </div>
@@ -708,19 +714,19 @@ export default function FriendsPage() {
           <GlassCard className="max-w-md w-full p-10 space-y-8 border-white/10 relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <button onClick={() => setIsTransferring(false)} className="absolute top-6 right-6 text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
             <div className="text-center space-y-4">
-               <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-indigo-500/20 text-indigo-400">
-                  <ArrowRight className="w-10 h-10" />
-               </div>
-               <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Send money to {selectedFriend.email.split('@')[0]}</h3>
-               <p className="text-zinc-500 text-sm italic">Direct Peer-to-Peer Transfer</p>
+              <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-indigo-500/20 text-indigo-400">
+                <ArrowRight className="w-10 h-10" />
+              </div>
+              <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Send money to {selectedFriend.email.split('@')[0]}</h3>
+              <p className="text-zinc-500 text-sm italic">Direct Peer-to-Peer Transfer</p>
             </div>
-            
+
             <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-1">Amount (₹)</label>
                 <div className="relative">
                   <div className="absolute left-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-zinc-600">₹</div>
-                  <input 
+                  <input
                     type="number"
                     value={transferAmount}
                     onChange={(e) => setTransferAmount(e.target.value)}
@@ -729,8 +735,8 @@ export default function FriendsPage() {
                   />
                 </div>
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={handleTransferSubmit}
                 disabled={transferLoading}
                 className="w-full py-6 text-base font-black uppercase tracking-[0.2em] shadow-xl bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20"
@@ -747,12 +753,12 @@ export default function FriendsPage() {
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
           <GlassCard className="max-w-2xl w-full h-[60vh] flex flex-col p-0 overflow-hidden border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]">
             <div className="p-8 border-b border-white/5 flex items-center justify-between">
-               <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                 <ShieldAlert className="w-6 h-6 text-indigo-400" /> Shared Group Protocols
-               </h3>
-               <button onClick={() => setIsGroupProtocolsOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-6 h-6" /></button>
+              <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                <ShieldAlert className="w-6 h-6 text-indigo-400" /> Shared Group Protocols
+              </h3>
+              <button onClick={() => setIsGroupProtocolsOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-6 h-6" /></button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
               {sharedGroupsDetails.length > 0 ? sharedGroupsDetails.map((group) => {
                 const net = group.yourBalance - group.friendBalance;
@@ -764,7 +770,7 @@ export default function FriendsPage() {
                         <Button variant="ghost" className="px-4 py-2 text-[10px] font-black uppercase tracking-widest border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10">Settle via Group</Button>
                       </Link>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div className="p-4 bg-white/5 rounded-2xl text-center">
                         <span className="block text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Your Standing</span>
@@ -775,13 +781,13 @@ export default function FriendsPage() {
                         <span className={`text-lg font-bold ${group.friendBalance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>₹{Math.abs(group.friendBalance).toFixed(2)}</span>
                       </div>
                     </div>
-                    
+
                     <div className="pt-4 border-t border-white/5">
                       <p className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
                         <Sparkles className="w-3 h-3" /> AI Protocol Layer: {
                           net > 0 ? "You are owed more in this group" :
-                          net < 0 ? "You owe more in this group" :
-                          "Balance parity detected"
+                            net < 0 ? "You owe more in this group" :
+                              "Balance parity detected"
                         }
                       </p>
                     </div>

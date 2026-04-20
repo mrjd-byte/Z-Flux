@@ -125,7 +125,7 @@ export default function DashboardPage() {
 
   return (
     <SectionContainer
-      title="Your Dashboard"
+      title="Dashboard"
     >
 
       {/* Metrics Section */}

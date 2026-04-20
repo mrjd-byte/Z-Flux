@@ -30,12 +30,12 @@ export const ScoreExplanationModal: React.FC<ScoreExplanationModalProps> = ({ is
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       {/* Overlay for outside click */}
-      <div 
-        className="absolute inset-0 z-0" 
-        onClick={onClose} 
+      <div
+        className="absolute inset-0 z-0"
+        onClick={onClose}
       />
-      
-      <div 
+
+      <div
         onClick={(e) => e.stopPropagation()}
         className="bg-[#0a0a0a] rounded-[2rem] w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10 animate-in zoom-in-95 duration-200 relative z-10 custom-scrollbar"
       >
@@ -64,7 +64,7 @@ export const ScoreExplanationModal: React.FC<ScoreExplanationModalProps> = ({ is
               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Logic: Deterministic Scoring</span>
             </div>
             <p className="text-sm font-bold text-zinc-200 leading-relaxed italic">
-              "Your Vitality Index is calculated using real-time spending ratios and budget adherence metrics."
+              "Your Financial Health is calculated using real-time spending ratios and budget adherence metrics."
             </p>
           </div>
 

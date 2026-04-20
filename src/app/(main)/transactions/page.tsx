@@ -6,6 +6,8 @@ import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useInsightToast } from "@/context/InsightToastContext";
+import { useSmartFeedback } from "@/context/SmartFeedbackContext";
 import { parseQuickLog } from "@/lib/utils/nlp";
 
 type Transaction = {
@@ -23,6 +25,7 @@ type Transaction = {
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { triggerFeedback } = useSmartFeedback();
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -52,7 +55,7 @@ export default function TransactionsPage() {
 
   const expenseCategories = ["Food", "Travel", "Shopping", "Bills", "General"];
 
-const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
+  const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -61,11 +64,11 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
     // or fetch from /api/user/profile if needed. 
     // To match the user's "Strict" requirement, we need the current user's ID.
     const fetchUser = async () => {
-       const res = await fetch("/api/user/profile", {
-         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-       });
-       const data = await res.json();
-       if (data.id) setCurrentUserId(data.id);
+      const res = await fetch("/api/user/profile", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+      });
+      const data = await res.json();
+      if (data.id) setCurrentUserId(data.id);
     };
     fetchUser();
     fetchTransactions();
@@ -110,6 +113,15 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
         setAmount("");
         fetchTransactions(); // Refetch latest immediately
         window.dispatchEvent(new Event("financial-data-updated"));
+
+        // Trigger Cinematic Smart Feedback
+        const isCredit = type === "INCOME" || type === "CREDIT" || type === "SALARY_TO_WALLET";
+        triggerFeedback({
+          type: isCredit ? "POSITIVE" : "NEGATIVE",
+          amount: parseFloat(amount),
+          category: category,
+          scoreImpact: isCredit ? 5 : -2
+        });
       }
     } catch (error) {
       console.error("Failed to add transaction:", error);
@@ -137,11 +149,18 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
 
       const data = await res.json();
       if (res.ok) {
-        setSendSuccess("Transfer successful!");
+        setSendSuccess("Transfer initialised.");
         setTargetWalletId("");
         setSendAmount("");
         fetchTransactions();
         window.dispatchEvent(new Event("financial-data-updated"));
+
+        // Trigger Cinematic Smart Feedback (TRANSFER)
+        triggerFeedback({
+          type: "TRANSFER",
+          amount: parseFloat(sendAmount),
+          friendName: "Peer", 
+        });
       } else {
         setSendError(data.error || "Transfer failed");
       }
@@ -184,7 +203,7 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
         <div className="lg:col-span-7 space-y-6">
           <GlassCard className="p-0 overflow-hidden flex flex-col md:p-0">
             <div className="p-10 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-              <h2 className="text-base font-black text-zinc-500 uppercase tracking-[0.2em]">Transaction Flux</h2>
+              <h2 className="text-base font-black text-zinc-500 uppercase tracking-[0.2em]">Transactions</h2>
               <span className="text-[10px] font-black bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-500/20">
                 {filteredTransactions.length} Nodes
               </span>
@@ -210,20 +229,20 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
                 <div className="divide-y divide-white/5">
                   {filteredTransactions.map((tx) => {
                     const isTransfer = tx.type === "TRANSFER" || tx.type === "TRANSFER_IN" || tx.type === "TRANSFER_OUT" || tx.type === "SETTLEMENT";
-                    
+
                     // Relative Sign Computation
                     // If senderId/receiverId exist, use role-based logic.
                     // Otherwise, fall back to legacy type-based logic.
-                    const isCredit = tx.receiverId 
-                      ? (currentUserId === tx.receiverId) 
+                    const isCredit = tx.receiverId
+                      ? (currentUserId === tx.receiverId)
                       : (tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET" || (tx.type === "SETTLEMENT" && tx.amount > 0));
-                    
+
                     const icon = isCredit ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />;
                     const colorClass = isCredit ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400";
-                    
+
                     let title = (tx.type === "SETTLEMENT" || tx.type === "TRANSFER" || tx.type === "TRANSFER_IN" || tx.type === "TRANSFER_OUT") ? "Transfer" : (tx.category || "Network Op");
                     if (isTransfer) {
-                       title = isCredit ? "Transfer Received" : "Transfer Sent";
+                      title = isCredit ? "Transfer Received" : "Transfer Sent";
                     }
 
                     return (
@@ -448,7 +467,7 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-6 py-5 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all text-xs font-black uppercase tracking-[0.2em] appearance-none"
                   >
-                    {type === "EXPENSE" 
+                    {type === "EXPENSE"
                       ? expenseCategories.map(c => <option key={c} value={c} className="bg-[#0a0a0a]">{c}</option>)
                       : incomeCategories.map(c => <option key={c} value={c} className="bg-[#0a0a0a]">{c}</option>)
                     }

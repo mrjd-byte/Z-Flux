@@ -103,7 +103,7 @@ Respond like a sharp fintech advisor, not a textbook.`;
           { role: "user", content: message }
         ],
         temperature: 0.7,
-        max_tokens: 80
+        max_tokens: 300
       })
     });
 

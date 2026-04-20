@@ -1,7 +1,48 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.5s ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   background-color: #050505;
   color: white;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Sidebar Utilities */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-label {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-icon-glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Tooltip */
+.sidebar-tooltip {
+  @apply invisible opacity-0 absolute left-full ml-4 px-3 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 text-white text-[10px] uppercase font-bold tracking-widest rounded-lg whitespace-nowrap transition-all duration-200 z-50 pointer-events-none;
+}
+
+.sidebar-item:hover .sidebar-tooltip {
+  @apply visible opacity-100 ml-6;
 }

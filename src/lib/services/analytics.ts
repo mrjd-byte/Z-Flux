@@ -118,8 +118,8 @@ export async function getDashboardAnalytics(userId: string) {
     }
   }
 
-  const weeklyChange = lastWeekExpenses > 0 
-    ? ((currentWeekExpenses - lastWeekExpenses) / lastWeekExpenses) * 100 
+  const weeklyChange = lastWeekExpenses > 0
+    ? ((currentWeekExpenses - lastWeekExpenses) / lastWeekExpenses) * 100
     : 0;
 
   const currentWeekTopCategory = Object.keys(currentWeekCategoryMap).length > 0
@@ -141,7 +141,7 @@ export async function getDashboardAnalytics(userId: string) {
   const savings = user.monthlyIncome - totalSalaryTransferred;
   const remainingBudget = user.monthlyIncome - totalExpenses;
 
-  // 🔥 NEW: Balanced Vitality Index Calculation
+  // 🔥 NEW: Balanced Financial Health Calculation
   // 1. Calculate Metrics
   const income = user.monthlyIncome || 0;
   const savingsRate = income > 0 ? (income - monthlyExpenses) / income : 0;
@@ -185,7 +185,7 @@ export async function getDashboardAnalytics(userId: string) {
 
   // 7. XAI: Score Explanation Breakdown
   const breakdown: ExplanationItem[] = [];
-  
+
   // Savings Rate Contribution
   const savingsWeight = Math.round(clampedSavingsRate * 70);
   breakdown.push({
@@ -245,18 +245,18 @@ export async function getDashboardAnalytics(userId: string) {
   else if (score >= 60) label = "Good";
   else if (score < 40) label = "Poor";
 
-  const topCategory = categoryBreakdown.length > 0 
-    ? categoryBreakdown.sort((a, b) => b.value - a.value)[0].name 
+  const topCategory = categoryBreakdown.length > 0
+    ? categoryBreakdown.sort((a, b) => b.value - a.value)[0].name
     : "None";
-  
+
   const prediction = `Projected ₹${(remainingBudget * 6).toFixed(0)} savings in 6 months`;
 
   // AI Summary (Low Token Usage)
   let aiSummary = "Financial health looks stable. Keep tracking your expenses to maintain balance.";
-  
+
   try {
-    const apiKey = "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";
-    
+    const apiKey = "";
+
     const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -268,13 +268,13 @@ export async function getDashboardAnalytics(userId: string) {
       body: JSON.stringify({
         model: "openrouter/auto:free",
         messages: [
-          { 
-            role: "system", 
-            content: "You are a financial advisor. Give: 1 short summary, 1 risk, 1 suggestion. Max 30 words." 
+          {
+            role: "system",
+            content: "You are a financial advisor. Give: 1 short summary, 1 risk, 1 suggestion. Max 30 words."
           },
-          { 
-            role: "user", 
-            content: `User Data: Score: ${score}, Wallet: ₹${user.walletBalance}, Income: ₹${user.monthlyIncome}, Expenses: ₹${totalExpenses}, Remaining: ₹${remainingBudget}` 
+          {
+            role: "user",
+            content: `User Data: Score: ${score}, Wallet: ₹${user.walletBalance}, Income: ₹${user.monthlyIncome}, Expenses: ₹${totalExpenses}, Remaining: ₹${remainingBudget}`
           }
         ],
         temperature: 0.5,
@@ -339,6 +339,6 @@ export async function getFriendSharedActivity(userId: string, friendId: string) 
     receiverId: tx.receiverId,
     title: tx.senderId === userId ? "Transferred Out" : "Transferred In",
     createdAt: tx.createdAt.toISOString(),
-    email: tx.senderId === userId ? "You" : "Friend" 
+    email: tx.senderId === userId ? "You" : "Friend"
   }));
 }
