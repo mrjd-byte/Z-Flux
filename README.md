@@ -130,4 +130,4 @@ npm run dev
 ---
 
 ## 10. License
-MIT License. © 2024 Z-Flux Team.
+MIT License. © 2026 Z-Flux Team.
