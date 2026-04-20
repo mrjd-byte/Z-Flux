@@ -293,7 +293,7 @@ export default function AIDecisionEngine() {
               <h4 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-6">Current Lifecycle</h4>
               <div className="flex items-baseline gap-4">
                 <span className="text-6xl font-bold text-white tracking-tighter">{data.score}</span>
-                <span className="text-zinc-500 uppercase text-[10px] font-black tracking-widest">Vitality Points</span>
+                <span className="text-zinc-500 uppercase text-[10px] font-black tracking-widest">Financial Health Points</span>
               </div>
               <p className="text-zinc-400 mt-6 text-sm leading-relaxed">
                 Based on current spending of ₹{data.monthlyExpenses.toLocaleString()}. Potential monthly savings: ₹{(data.income - data.monthlyExpenses).toLocaleString()}.
@@ -310,7 +310,7 @@ export default function AIDecisionEngine() {
                 <span className="text-6xl font-bold text-emerald-400 tracking-tighter">
                   {Math.min(100, data.score + 12)}
                 </span>
-                <span className="text-zinc-500 uppercase text-[10px] font-black tracking-widest">Vitality Points</span>
+                <span className="text-zinc-500 uppercase text-[10px] font-black tracking-widest">Financial Health Points</span>
               </div>
               <p className="text-zinc-400 mt-6 text-sm leading-relaxed">
                 Eliminating budget violations (₹{data.overspentAmount.toLocaleString()}) would boost your score significantly.

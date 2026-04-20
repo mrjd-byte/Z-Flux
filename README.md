@@ -1,331 +1,133 @@
 # 🚀 Z-Flux — AI Finance Super App
 
-## 1. Overview
+## 1. Description
+Z-Flux is a comprehensive AI-powered Finance Super App designed to unify the fragmented landscape of personal finance. By integrating budgeting, multi-wallet management, and secure peer-to-peer transfers into a single ecosystem, Z-Flux bridges the gap between passive tracking and active execution. Powered by an intelligent AI layer, it transforms raw financial data into proactive, actionable insights for students and professionals alike.
 
-Z-Flux is a full-fledged **AI-powered Finance Super App** that enables users to manage their finances end-to-end. Combining budgeting, expense tracking, wallet management, peer-to-peer transfers, and AI-driven insights into a single unified platform, Z-Flux goes beyond passive tracking — it empowers users to actively manage, move, and optimize their money in real time.
-
-Designed for **students**, **professionals**, and **digital-first users** who want a comprehensive, all-in-one solution for their financial life.
-
-<h2 align="center">📸 App Screenshots</h2>
-
-<br/>
-
-<h3 align="center">🏠 Home</h3>
-<p align="center">
-  <img src="./Images/homepage.png" width="800"/>
-</p>
-<p align="center"><em>Landing Page</em></p>
-
----
-
-<h3 align="center">📊 Dashboard</h3>
-<p align="center">
-  <img src="./Images/dashboard.png" width="800"/>
-</p>
-<p align="center"><em>Financial Overview</em></p>
-
----
-
-<h3 align="center">💸 Transactions</h3>
-<p align="center">
-  <img src="./Images/transaction.png" width="800"/>
-</p>
-<p align="center"><em>Track your spending</em></p>
-
----
-
-<h3 align="center">📉 Budget</h3>
-<p align="center">
-  <img src="./Images/budget.png" width="800"/>
-</p>
-<p align="center"><em>Manage budgets</em></p>
-
----
-
-<h3 align="center">🔁 AI-Advisor</h3>
-<p align="center">
-  <img src="./Images/advisor.png" width="800"/>
-</p>
-<p align="center"><em>AI-Powered Financial Advisor</em></p>
-
----
-
-<h3 align="center">👤 Profile</h3>
-<p align="center">
-  <img src="./Images/profile.png" width="800"/>
-</p>
-<p align="center"><em>User profile settings</em></p>
 ---
 
 ## 2. Problem
-
-The current landscape of personal finance tools is fragmented and inadequate:
-
-- **Lack of Unified Financial Platforms** — Users rely on multiple apps for different needs: one for budgeting, another for wallets, another for transfers, and yet another for advice. This creates data silos, poor user experience, and increased cognitive load.
-
-- **Passive Tracking Only** — Most finance apps simply record what happened. They offer no way to actively move money, create multiple accounts, or execute transactions between users. You're limited to observation, not action.
-
-- **No Intelligent + Actionable System** — Even apps with "insights" provide static, generic advice. There's no system that understands your specific situation and helps you make decisions that actually impact your financial health.
-
-- **Limited Control Over Money Movement** — True financial management requires the ability to transfer funds, allocate money across different wallets, and track where money moves. Most apps lack this fundamental capability.
+- **Fragmented Tools**: Users juggle multiple apps for budgeting, wallets, and transfers, leading to data silos and cognitive load.
+- **Passive Tracking Only**: Most tools only record what happened, offering no way to move money or execute transactions.
+- **Static Insights**: Current apps provide generic advice that lacks the context of a user's real-time financial situation.
+- **Lack of Action**: Information without execution is useless; most apps don't allow users to act on their financial insights.
 
 ---
 
 ## 3. Solution
-
-Z-Flux combines tracking, management, and execution into one powerful platform:
-
-- **All-in-One Platform** — No more switching between apps. Z-Flux handles budgeting, wallets, transfers, expense tracking, and AI insights in a single, cohesive experience.
-
-- **Multi-Wallet System** — Create multiple wallets for different purposes — savings, daily spending, travel fund, emergency fund. Each wallet maintains its own balance and transaction history.
-
-- **Wallet-to-Wallet Transfers** — Move money between your own wallets or send funds to other users securely. Track every transfer with complete transparency.
-
-- **AI-Powered Intelligence** — AI | OpenRouter (Minimax M2.5) analyzes your spending patterns, wallet balances, and transfer history to deliver context-aware financial advice and real-time recommendations.
-
-- **Real-Time Control** — Every action happens instantly. Add transactions, create budgets, transfer funds, and get AI responses — all in real time with immediate updates across your financial ecosystem.
+Z-Flux provides a unified "Command Center" for your money. It combines a robust transaction engine with a multi-wallet system and a real-time AI Decision Engine. This synergy allows users to not only track spending but also move funds and receive context-aware guidance that improves their financial health instantly.
 
 ---
 
-## 4. Key Features
+## 4. Features
 
-- **AI-powered financial insights** — Get intelligent analysis of your financial health, spending trends, and money patterns powered by AI | OpenRouter (Minimax M2.5).
-- **Budget tracking** — Set, monitor, and adjust budgets across categories with real-time progress tracking and spending alerts
-- **Expense categorization** — Automatically organize transactions into meaningful categories for clear financial visibility
-- **Spending analytics** — Visualize spending patterns with intuitive charts, breakdowns, and trend analysis
-- **Multi-wallet system** — Create and manage multiple wallets (personal, savings, business, etc.) each with independent balances
-- **Secure wallet-to-wallet transfers** — Transfer funds between your own wallets or send money to other users with full transaction history
-- **Real-time recommendations** — Receive instant, actionable suggestions based on your current financial behavior and goals
+### 💰 Core Finance
+- **Transactions**: Automated tracking and manual entry with deep categorization.
+- **Budgeting**: Smart limits across categories with real-time progress alerts.
+- **Wallets**: Manage multiple accounts (Savings, Daily, Business) in one place.
+- **Transfers**: Secure wallet-to-wallet and peer-to-peer fund movements.
+
+### 🤖 AI Layer
+- **AI Insights**: Deep analysis of spending patterns and financial health.
+- **AI Recommendations**: Actionable suggestions based on real-time behavior.
+- **AI Smart Plans**: Personalized financial roadmaps to reach your goals.
+- **AI Advisor**: A context-aware chatbot for instant financial guidance and decision support.
+
+### 👥 Social Layer
+- **Friends**: Connect with others to simplify shared financial activities.
+- **Peer transfers**: Send and receive money instantly within your social circle.
+- **Group insights**: Shared transparency for group ledgers and collective goals.
 
 ---
 
-## 5. Technical Architecture
+## 5. Screenshots (VERY IMPORTANT)
 
-Z-Flux uses a modern three-tier architecture optimized for real-time financial operations and AI integration.
+<div align="center">
+  <img src="./Images/homepage.png" width="800" alt="Landing Page">
+  <p><em>Modern Landing Page — The gateway to your financial ecosystem</em></p>
+  <br/>
+  <img src="./Images/dashboard.png" width="800" alt="Overview">
+  <p><em>Financial Overview — At-a-glance health and balance tracking</em></p>
+  <br/>
+  <img src="./Images/dashhboar2.png" width="800" alt="Extended dashboard">
+  <p><em>Extended Analytics — Deep dive into your spending and income trends</em></p>
+  <br/>
+  <img src="./Images/transactions.png" width="800" alt="Transaction list">
+  <p><em>Transaction Management — Clean, sortable history of every rupee</em></p>
+  <br/>
+  <img src="./Images/transaction2.png" width="800" alt="Transaction details">
+  <p><em>Detailed Insights — Granular breakdown of individual expenses</em></p>
+  <br/>
+  <img src="./Images/budget.png" width="800" alt="Budget system">
+  <p><em>Smart Budgeting — Set limits and track progress with visual cues</em></p>
+  <br/>
+  <img src="./Images/decisionengine.png" width="800" alt="AI Decision Engine">
+  <p><em>AI Decision Engine — Data-driven logic solving your financial puzzles</em></p>
+  <br/>
+  <img src="./Images/predictions.png" width="800" alt="Predictions">
+  <p><em>Future Predictions — AI-powered forecasting for better planning</em></p>
+  <br/>
+  <img src="./Images/smartplan.png" width="800" alt="Smart Plan">
+  <p><em>AI Smart Plan — Personalized roadmaps to achieve financial goals</em></p>
+  <br/>
+  <img src="./Images/ai-advisor.png" width="800" alt="AI Chat">
+  <p><em>AI Advisor — Real-time chat for on-the-go financial advice</em></p>
+  <br/>
+  <img src="./Images/friends.png" width="800" alt="Social layer">
+  <p><em>Social Connections — Finance is better with friends</em></p>
+  <br/>
+  <img src="./Images/peertransfer.png" width="800" alt="Transfers">
+  <p><em>Peer Transfers — Instant, secure money movement between users</em></p>
+  <br/>
+  <img src="./Images/groupledger.png" width="800" alt="Group system">
+  <p><em>Group Ledger — Collaborative tracking for shared expenses</em></p>
+  <br/>
+  <img src="./Images/Profile.png" width="800" alt="Profile">
+  <p><em>User Profile — Personalize your experience and security</em></p>
+</div>
 
-### Stack Overview
+---
+
+## 6. Tech Stack
 
 | Layer | Technology |
-|-------|------------|
-| Frontend | React.js, Tailwind CSS |
-| Backend | Node.js, Express.js |
-| AI | OpenRouter (Minimax M2.5) |
-| Database | PostgreSQL + Prisma |
-
-### System Work-Flow
-
-<h3 align="center">⚙️ System Workflow</h3>
-
-<p align="center">
-  <img src="./Images/Z-Flux%20Financial-2026-04-13-094944.png" width="900"/>
-</p>
-
-
-## 6. Directory Structure
-
-```
-Z-Flux/
-├── client/                    # React.js frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   ├── pages/            # Page components
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── services/         # API service functions
-│   │   ├── contexts/         # React context providers
-│   │   ├── utils/            # Helper functions
-│   │   └── styles/           # Global styles
-│   ├── package.json
-│   └── tailwind.config.js
-│
-├── server/                    # Node.js/Express backend
-│   ├── config/               # Database & environment config
-│   ├── controllers/          # Route controllers
-│   ├── middleware/           # Custom middleware (auth, errors)
-│   ├── models/               # Prisma models / database schema
-│   ├── routes/               # API route definitions
-│   ├── services/             # Business logic & AI integration
-│   ├── utils/                # Helper functions
-│   ├── package.json
-│   └── index.js              # Entry point
-│
-├── .env.example              # Environment variables template
-├── package.json              # Root package.json (optional)
-└── README.md
-```
+| :--- | :--- |
+| **Frontend** | Next.js 15+, React 19, Tailwind CSS 4, Capacitor |
+| **Backend** | Next.js API Routes, Prisma ORM |
+| **Database** | PostgreSQL |
+| **AI** | OpenRouter (Minimax M2.5 / OpenAI) |
 
 ---
 
-## 7. Database Schema
-
-Z-Flux uses PostgreSQL with Prisma ORM and defines five primary models/tables. Records include automatic id and timestamp fields managed by Prisma.
-
-### Users
-
-Stores user account information and authentication data.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| email | String | Unique user email |
-| password | String | Hashed password (bcrypt) |
-| name | String | User's display name |
-| createdAt | Date | Account creation timestamp |
-| updatedAt | Date | Last profile update |
-
-**Relationship:** One-to-Many with Wallets, Transactions, and Budgets
-
----
-
-### Wallets
-
-Manages multiple wallets per user with independent balances.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| userId | UUID | Foreign key referencing Users (Prisma) |
-| walletId | String | Unique wallet identifier |
-| name | String | Wallet name (e.g., "Main", "Savings") |
-| balance | Decimal | Current wallet balance |
-| walletType | String | Type: "personal", "savings", "business" |
-| currency | String | Currency code (default: "USD") |
-| isActive | Boolean | Wallet status |
-| createdAt | DateTime | Wallet creation timestamp (Prisma DateTime) |
-| updatedAt | DateTime | Last balance update |
-
-**Relationship:** Many-to-One with Users, One-to-Many with Transfers (as sender/receiver)
-
----
-
-### Transactions
-
-Records all income and expense entries across wallets.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| userId | UUID | Foreign key referencing Users (Prisma) |
-| walletId | UUID | Foreign key referencing Wallets (Prisma) |
-| amount | Decimal | Transaction amount |
-| type | String | "income" or "expense" |
-| category | String | Transaction category |
-| description | String | Optional notes |
-| date | DateTime | Transaction date |
-| createdAt | DateTime | Record creation timestamp |
-
-**Relationship:** Many-to-One with Users, Many-to-One with Wallets
-
----
-
-### Budgets
-
-Manages user-defined budget limits per category.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| userId | UUID | Foreign key referencing Users (Prisma) |
-| category | String | Budget category |
-| limit | Decimal | Spending limit |
-| spent | Decimal | Current amount spent |
-| period | String | Period: "monthly", "weekly" |
-| createdAt | DateTime | Record creation timestamp |
-| updatedAt | DateTime | Last update timestamp |
-
-**Relationship:** Many-to-One with Users
-
----
-
-### Transfers
-
-Records all wallet-to-wallet and user-to-user transfers.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| senderWalletId | UUID | Foreign key referencing sender's Wallet (Prisma) |
-| receiverWalletId | UUID | Foreign key referencing receiver's Wallet (Prisma) |
-| amount | Decimal | Transfer amount |
-| status | String | "completed", "pending", "failed" |
-| description | String | Optional transfer note |
-| timestamp | DateTime | Transfer execution time |
-| createdAt | DateTime | Record creation timestamp |
-
-**Relationship:** Many-to-One with Wallets (both sender and receiver)
-
----
-
-### Schema Relationships Summary
-
-```
-Users (1) ──────< Wallets (Many)
-    │
-    ├──< Transactions (Many)
-    │
-    ├──< Budgets (Many)
-    │
-    │
-Wallets (1) ──────< Transfers (Many) >───── (1) Wallets
-```
-
----
-
-## 8. Installation Guide
-
-### Clone Repository
+## 7. Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/your-username/z-flux.git
-cd z-flux
-```
 
----
-
-### Environment Setup
-
-Create `.env` files in both `client/` and `server/` directories based on the examples below.
-
-**Server (.env):**
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/zflux
-
-# AI Integration
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Authentication
-JWT_SECRET=your_jwt_secret_key_here
-```
-
-**Client (.env):**
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-```
-
----
-
-### Run the project
-
-```bash
+# Install dependencies
 npm install
+
+# Run the development server
 npm run dev
 ```
 
-Application available at `http://localhost:3000`
+---
+
+## 8. Usage
+1. **Run App**: Launch the dev server and navigate to `localhost:3000`.
+2. **Setup Wallets**: Create your primary wallets and add initial transactions.
+3. **Analyze**: Visit the **AI Advisor** or **Decision Engine** to get personalized insights.
+4. **Social**: Connect with friends to start secure peer transfers.
 
 ---
 
-## 9. Privacy and Security
-
-Z-Flux implements comprehensive security measures to protect financial data and user privacy:
-
-- **Password Hashing** — All user passwords are securely hashed using bcrypt before storage. Plaintext credentials are never saved.
-- **Secure Transactions** — Wallet-to-wallet transfers include validation, status tracking, and atomic balance updates to ensure transaction integrity.
-- **User Data Isolation** — Authentication ensures each user can only access their own wallets, transactions, budgets, and transfer history.
-- **Safe Financial Handling** — Financial data is processed only for app functionality — no sharing with third parties, no unnecessary data collection.
+## 9. Why Z-Flux
+- **Unified System**: Eliminates the need for 5+ apps by merging finance and social silos.
+- **Actionable AI**: Doesn't just track; it advises, predicts, and helps execute.
+- **Social Finance Layer**: Makes money management collaborative and transparent.
+- **Real-time Decision Engine**: Processes data instantly for immediate financial impact.
 
 ---
 
-*Z-Flux — Your complete AI-powered financial command center.*
+## 10. License
+MIT License. © 2024 Z-Flux Team.
