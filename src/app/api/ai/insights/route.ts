@@ -84,7 +84,7 @@ export async function GET(req: Request) {
       rawSignals.push({ message: `Your top expense this week is ${topCategory} (₹${currentWeekExpenses.toFixed(2)}).`, type: "warning" });
     }
 
-    const apiKey = "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";
+    const apiKey = "";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });
