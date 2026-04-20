@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { getDashboardAnalytics } from "@/lib/services/analytics";
+import { getDashboardAnalytics, InsightExplanation } from "@/lib/services/analytics";
 
 type InsightType = "danger" | "warning" | "good";
-type StructuredInsight = { message: string, type: InsightType };
+type StructuredInsight = { 
+  message: string; 
+  type: InsightType;
+  explanation?: InsightExplanation;
+};
+
+function getInsightExplanation(prev: number, current: number): InsightExplanation {
+  const change = prev > 0 ? ((current - prev) / prev) * 100 : 0;
+  return {
+    trigger: "Weekly Trend Analysis",
+    previous: `₹${prev.toFixed(2)}`,
+    current: `₹${current.toFixed(2)}`,
+    change: `${change > 0 ? '+' : ''}${change.toFixed(0)}%`,
+    reason: Math.abs(change) > 15 ? "Significant variation detected" : "Normal weekly variation"
+  };
+}
 
 export async function GET(req: Request) {
   try {
@@ -50,7 +65,26 @@ export async function GET(req: Request) {
       }
     }
 
-    const apiKey = "";
+    // 🔥 NEW: Weekly Trend Signals
+    if (analytics.weeklySummary) {
+      const { currentWeekExpenses, lastWeekExpenses, weeklyChange, topCategory } = analytics.weeklySummary;
+      if (weeklyChange > 10) {
+        rawSignals.push({ 
+          message: `Spending increased by ${weeklyChange.toFixed(0)}% this week compared to last.`, 
+          type: "danger",
+          explanation: getInsightExplanation(lastWeekExpenses, currentWeekExpenses)
+        });
+      } else if (weeklyChange < -10) {
+        rawSignals.push({ 
+          message: `Great job! You spent ${(Math.abs(weeklyChange)).toFixed(0)}% less this week.`, 
+          type: "good",
+          explanation: getInsightExplanation(lastWeekExpenses, currentWeekExpenses)
+        });
+      }
+      rawSignals.push({ message: `Your top expense this week is ${topCategory} (₹${currentWeekExpenses.toFixed(2)}).`, type: "warning" });
+    }
+
+    const apiKey = "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";
     
     if (!apiKey) {
       return NextResponse.json({ insights: rawSignals.slice(0, 3) }, { status: 200 });
@@ -61,6 +95,7 @@ Return EXCLUSIVELY a JSON array responding exactly to this structure:
 [
   { "message": "short insight text", "type": "danger|warning|good" }
 ]
+CRITICAL: If the input signal has an "explanation" field, you MUST preserve it exactly in your output for that specific insight.
 Do not return any markdown tags or wrapper strings.`;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

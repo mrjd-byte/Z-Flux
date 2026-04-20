@@ -103,7 +103,11 @@ export async function GET(
         amount: Math.abs(Number(myBalance.toFixed(2)))
     };
 
-    return NextResponse.json({ mySummary, settlements });
+    return NextResponse.json({ 
+      mySummary, 
+      settlements,
+      balances: balances.map(b => ({ name: b.name, balance: b.balance }))
+    });
 
   } catch (error: any) {
     console.error("Settlement API Error:", error);

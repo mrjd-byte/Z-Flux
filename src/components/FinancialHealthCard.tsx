@@ -10,11 +10,14 @@ interface FinancialHealthProps {
     aiSummary: string;
     topCategory: string;
     prediction: string;
+    scoreExplanation?: any;
   };
 }
+import { ScoreExplanationModal } from "./ScoreExplanationModal";
 
 const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
   const [progress, setProgress] = useState(0);
+  const [isXaiOpen, setIsXaiOpen] = useState(false);
 
   useEffect(() => {
     // Animate the progress circle on mount
@@ -61,6 +64,12 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
           <h3 className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3">
             <Target className="w-4 h-4 text-indigo-400" /> Vitality Index
           </h3>
+          <button 
+            onClick={() => setIsXaiOpen(true)}
+            className="text-[8px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded-full text-zinc-500 hover:text-indigo-400 hover:border-indigo-500/30 transition-all"
+          >
+            Why?
+          </button>
           <div className="relative w-40 h-40 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
               <circle
@@ -134,6 +143,14 @@ const FinancialHealthCard: React.FC<FinancialHealthProps> = ({ data }) => {
           </div>
         </div>
       </div>
+
+      {data.scoreExplanation && (
+        <ScoreExplanationModal 
+          isOpen={isXaiOpen} 
+          onClose={() => setIsXaiOpen(false)} 
+          explanation={data.scoreExplanation} 
+        />
+      )}
     </div>
   );
 };

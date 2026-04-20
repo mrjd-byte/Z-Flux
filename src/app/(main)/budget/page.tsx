@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, X, Loader2, Target, CalendarDays, TrendingUp } from "lucide-react";
+import { 
+  Plus, X, Loader2, Target, CalendarDays, 
+  TrendingUp, MoreVertical, Edit2, Trash2, 
+  AlertTriangle 
+} from "lucide-react";
+import { useInsightToast } from "@/context/InsightToastContext";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +27,11 @@ export default function BudgetPage() {
   const [daysLeft, setDaysLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState<BudgetData | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const { addInsight } = useInsightToast();
 
   // Modal States
   const [category, setCategory] = useState("Food");
@@ -72,7 +82,12 @@ export default function BudgetPage() {
       if (res.ok) {
         setIsModalOpen(false);
         setAmount("");
-        fetchBudgets(); // Refresh math
+        addInsight({
+          message: "Budget target saved successfully",
+          type: "success",
+          priority: "MEDIUM"
+        });
+        fetchBudgets();
         window.dispatchEvent(new Event("financial-data-updated"));
       }
     } catch (error) {
@@ -80,6 +95,72 @@ export default function BudgetPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditBudget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBudget) return;
+    setIsSubmitting(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/budget", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ category: selectedBudget.category, amount })
+      });
+
+      if (res.ok) {
+        setIsEditModalOpen(false);
+        addInsight({
+          message: `Budget for ${selectedBudget.category} updated`,
+          type: "success",
+          priority: "MEDIUM"
+        });
+        fetchBudgets();
+        window.dispatchEvent(new Event("financial-data-updated"));
+      }
+    } catch (error) {
+      console.error("Failed to update budget:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteBudget = async () => {
+    if (!selectedBudget) return;
+    setIsSubmitting(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/budget?id=${selectedBudget.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        setIsDeleteModalOpen(false);
+        addInsight({
+          message: "Budget category removed",
+          type: "warning",
+          priority: "MEDIUM"
+        });
+        fetchBudgets();
+        window.dispatchEvent(new Event("financial-data-updated"));
+      }
+    } catch (error) {
+      console.error("Failed to delete budget:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const adjustAmount = (val: number) => {
+    const current = parseFloat(amount) || 0;
+    setAmount((Math.max(0, current + val)).toString());
   };
 
   const totalLimit = budgets.reduce((acc, curr) => acc + curr.limit, 0);
@@ -160,9 +241,44 @@ export default function BudgetPage() {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold tracking-tight text-white uppercase">{b.category}</h3>
-                      <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border ${isOver ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
-                        {b.percentage}% Used
-                      </span>
+                      <div className="flex items-center gap-4">
+                        <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border ${isOver ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
+                          {b.percentage}% Used
+                        </span>
+                        <div className="relative">
+                          <button 
+                            onClick={() => setActiveMenuId(activeMenuId === b.id ? null : b.id)}
+                            className="p-1 text-zinc-500 hover:text-white transition-colors"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {activeMenuId === b.id && (
+                            <div className="absolute right-0 top-8 z-20 w-32 bg-[#0d0d0d] border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                              <button 
+                                onClick={() => {
+                                  setSelectedBudget(b);
+                                  setAmount(b.limit.toString());
+                                  setIsEditModalOpen(true);
+                                  setActiveMenuId(null);
+                                }}
+                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                              >
+                                <Edit2 className="w-3 h-3" /> Edit
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setSelectedBudget(b);
+                                  setIsDeleteModalOpen(true);
+                                  setActiveMenuId(null);
+                                }}
+                                className="w-full px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/10 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-3 h-3" /> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="flex justify-between text-xs mb-3 font-bold uppercase tracking-widest text-zinc-500">
@@ -252,6 +368,121 @@ export default function BudgetPage() {
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Target"}
               </Button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {isEditModalOpen && selectedBudget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="bg-[#0a0a0a] rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in-95 duration-200 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+
+            <div className="flex justify-between items-center p-12 pb-8 relative z-10">
+              <div>
+                <h3 className="text-3xl font-bold text-white tracking-tight">Edit Budget</h3>
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-1 italic">Category: {selectedBudget.category}</p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-3 bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all border border-white/5"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditBudget} className="p-12 pt-0 space-y-8 relative z-10">
+              <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/5 mb-4">
+                <div>
+                  <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Current Limit</p>
+                  <p className="text-lg font-bold text-white">₹{selectedBudget.limit.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Spent to Date</p>
+                  <p className="text-lg font-bold text-emerald-400">₹{selectedBudget.spent.toFixed(2)}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] block pl-1">New Monthly Limit (₹)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full px-0 py-4 bg-transparent border-b-2 border-white/10 focus:border-indigo-500 text-white focus:outline-none transition-all text-5xl font-bold tracking-tighter placeholder:text-white/5"
+                  placeholder="500.00"
+                />
+                
+                <div className="flex gap-3 pt-4">
+                  {[500, 1000, -500].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => adjustAmount(v)}
+                      className="px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                      {v > 0 ? `+${v}` : v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Math Preview */}
+              <div className="p-6 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">New Remaining Balance</span>
+                  <span className="text-xl font-bold text-white tracking-tighter">
+                    ₹{( (parseFloat(amount) || 0) - selectedBudget.spent ).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting || !amount || parseFloat(amount) <= 0}
+                className="w-full py-6 font-black uppercase tracking-[0.2em] flex justify-center items-center h-16 shadow-lg shadow-indigo-500/20"
+              >
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Apply Updates"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && selectedBudget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="bg-[#0a0a0a] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-white/10 animate-in zoom-in-95 duration-200 p-12 text-center relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-[50px] rounded-full pointer-events-none" />
+            
+            <div className="w-20 h-20 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
+              <AlertTriangle className="w-10 h-10 text-rose-500" />
+            </div>
+
+            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Remove Budget?</h3>
+            <p className="text-sm text-zinc-500 leading-relaxed mb-10 font-medium">
+              Are you sure you want to remove the <span className="text-white font-bold">{selectedBudget.category}</span> budget category? 
+              <br/><span className="text-[10px] font-black uppercase tracking-widest mt-2 block opacity-60">Transactions will not be deleted.</span>
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={handleDeleteBudget}
+                disabled={isSubmitting}
+                className="w-full py-5 bg-rose-600 hover:bg-rose-500 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-rose-900/20 h-14 flex items-center justify-center"
+              >
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Delete Category"}
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="w-full py-5 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all border border-white/5"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

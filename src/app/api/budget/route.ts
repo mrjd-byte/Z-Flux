@@ -107,3 +107,76 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const userId = authenticate(req);
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { searchParams } = new URL(req.url);
+    const budgetId = searchParams.get("id");
+
+    if (!budgetId) {
+      return NextResponse.json({ error: "Missing budget ID" }, { status: 400 });
+    }
+
+    const budget = await prisma.budget.findFirst({
+      where: { id: budgetId, userId }
+    });
+
+    if (!budget) {
+      return NextResponse.json({ error: "Budget not found" }, { status: 404 });
+    }
+
+    await prisma.budget.delete({
+      where: { id: budgetId }
+    });
+
+    return NextResponse.json({ message: "Budget deleted" }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE /api/budget error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+export async function PATCH(req: Request) {
+  try {
+    const userId = authenticate(req);
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { updates } = await req.json(); // Array of { category: string, amount: number }
+
+    if (!Array.isArray(updates)) {
+      return NextResponse.json({ error: "Invalid updates format" }, { status: 400 });
+    }
+
+    const results = [];
+    for (const update of updates) {
+      const existing = await prisma.budget.findFirst({
+        where: { userId, category: update.category }
+      });
+
+      if (existing) {
+        const item = await prisma.budget.update({
+          where: { id: existing.id },
+          data: { amount: Number(update.amount) }
+        });
+        results.push(item);
+      } else {
+        const item = await prisma.budget.create({
+          data: {
+            userId,
+            category: update.category,
+            amount: Number(update.amount)
+          }
+        });
+        results.push(item);
+      }
+    }
+
+    return NextResponse.json({ message: "Budgets updated successfully", results }, { status: 200 });
+  } catch (error) {
+    console.error("PATCH /api/budget error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+

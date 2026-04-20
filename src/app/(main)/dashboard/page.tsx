@@ -1,9 +1,18 @@
 "use client";
-
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, Wallet, IndianRupee, TrendingDown, PiggyBank, ArrowDownRight, ArrowUpRight, Sparkles, X, AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  Loader2, Wallet, IndianRupee, TrendingDown, PiggyBank,
+  ArrowDownRight, ArrowUpRight, Sparkles, X,
+  AlertCircle, AlertTriangle, CheckCircle2
+} from "lucide-react";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell
+} from "recharts";
 import FinancialHealthCard from "@/components/FinancialHealthCard";
+import { useInsightToast } from "@/context/InsightToastContext";
+import { InsightExplanationModal } from "@/components/InsightExplanationModal";
+import { InsightExplanation, ScoreExplanation } from "@/lib/services/analytics";
 
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -20,14 +29,23 @@ type DashboardData = {
     score: number;
     label: string;
     aiSummary: string;
+    vitalityMessage: string;
+    scoreExplanation: ScoreExplanation;
     topCategory: string;
     prediction: string;
+  };
+  weeklySummary: {
+    currentWeekExpenses: number;
+    lastWeekExpenses: number;
+    weeklyChange: number;
+    topCategory: string;
   };
 };
 
 type InsightData = {
   message: string;
   type: "danger" | "warning" | "good";
+  explanation?: InsightExplanation;
 };
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
@@ -36,6 +54,9 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [insights, setInsights] = useState<InsightData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInsightXaiOpen, setIsInsightXaiOpen] = useState(false);
+  const [activeInsight, setActiveInsight] = useState<any>(null);
+  const { addInsight } = useInsightToast();
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -52,7 +73,17 @@ export default function DashboardPage() {
       });
       if (insightRes.ok) {
         const insightData = await insightRes.json();
-        setInsights((insightData.insights || []).slice(0, 3));
+        const rawInsights = (insightData.insights || []).slice(0, 3);
+        setInsights(rawInsights);
+
+        // Add to global toast system
+        rawInsights.forEach((ins: any) => {
+          addInsight({
+            message: ins.message,
+            type: ins.type === "danger" ? "warning" : (ins.type === "good" ? "success" : "info"),
+            priority: ins.type === "danger" ? "HIGH" : "MEDIUM"
+          });
+        });
       }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
@@ -89,12 +120,27 @@ export default function DashboardPage() {
       title="Your Dashboard"
     >
 
-      {/* Financial Health Integration */}
-      {data.financialHealth && (
-        <FinancialHealthCard data={data.financialHealth} />
-      )}
+      {/* Metrics Section */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: "Wallet Balance", value: data.walletBalance, icon: Wallet, color: "text-indigo-400", bg: "bg-indigo-500/10" },
+          { label: "Monthly Income", value: data.monthlyIncome, icon: IndianRupee, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Total Expenses", value: data.totalExpenses, icon: TrendingDown, color: "text-rose-400", bg: "bg-rose-500/10" },
+          { label: "Projected Savings", value: data.savings, icon: PiggyBank, color: "text-sky-400", bg: "bg-sky-500/10" }
+        ].map((metric, idx) => (
+          <GlassCard key={idx} hoverEffect>
+            <div className={`w-12 h-12 rounded-2xl ${metric.bg}flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-white/5`}>
+              <metric.icon className={`mt-3 ml-3 w-6 h-6 ${metric.color}`} />
+            </div>
+            <h3 className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] mb-3">{metric.label}</h3>
+            <p className="text-3xl font-bold text-white tracking-tighter tabular-nums">
+              ₹{metric.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </GlassCard>
+        ))}
+      </div>
 
-{/* Analytics Section - Refactored to Glass Hub */}
+      {/* Analytics Section - Refactored to Glass Hub */}
       <div className="mt-12 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden shadow-2xl">
         <div className="p-10 border-b border-white/5 bg-white/[0.02]">
           <h2 className="text-xl font-bold text-white tracking-wide uppercase ">Financial Overview</h2>
@@ -114,7 +160,7 @@ export default function DashboardPage() {
                     <LineChart data={data.expenseTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                       <CartesianGrid strokeDasharray="0" vertical={false} stroke="rgba(255,255,255,0.05)" />
                       <XAxis dataKey="date" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tick={{ dy: 10 }} />
-                      <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
+                      <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `₹${v}`} />
                       <Tooltip
                         contentStyle={{
                           borderRadius: '1.5rem',
@@ -162,7 +208,7 @@ export default function DashboardPage() {
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        {data.categoryBreakdown.map((entry, index) => (
+                        {data.categoryBreakdown.map((entry: { name: string; value: number }, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0.3)" strokeWidth={2} />
                         ))}
                       </Pie>
@@ -184,7 +230,7 @@ export default function DashboardPage() {
               </div>
               {/* Custom Legend */}
               <div className="flex flex-wrap justify-center gap-6 pt-4">
-                {data.categoryBreakdown.map((entry, index) => (
+                {data.categoryBreakdown.map((entry: { name: string; value: number }, index: number) => (
                   <div key={entry.name} className="flex items-center gap-2 text-[10px] text-zinc-400 font-black uppercase tracking-[0.1em]">
                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                     {entry.name}
@@ -196,31 +242,49 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Metrics Section */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: "Wallet Balance", value: data.walletBalance, icon: Wallet, color: "text-indigo-400", bg: "bg-indigo-500/10" },
-          { label: "Monthly Income", value: data.monthlyIncome, icon: IndianRupee, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-          { label: "Total Expenses", value: data.totalExpenses, icon: TrendingDown, color: "text-rose-400", bg: "bg-rose-500/10" },
-          { label: "Projected Savings", value: data.savings, icon: PiggyBank, color: "text-sky-400", bg: "bg-sky-500/10" }
-        ].map((metric, idx) => (
-          <GlassCard key={idx} hoverEffect>
-            <div className={`w-12 h-12 rounded-2xl ${metric.bg}flex items-center justify-center mb-6 group-hover:scale-110 transition-transform border border-white/5`}>
-              <metric.icon className={`mt-3 ml-3 w-6 h-6 ${metric.color}`} />
+
+      {/* Financial Health Integration */}
+      {data.financialHealth && (
+        <FinancialHealthCard data={data.financialHealth} />
+      )}
+
+      {/* Weekly Summary Strategy - New High-Level Focus */}
+      <div className="mt-12">
+        <GlassCard className="p-8 border-indigo-500/20 bg-indigo-500/5 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[50px] rounded-full" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <h2 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Weekly Chronicle</h2>
+              </div>
+              <p className="text-zinc-300 text-sm font-medium leading-relaxed max-w-xl">
+                This week you spent <span className="text-white font-bold">₹{data.weeklySummary.currentWeekExpenses.toLocaleString()}</span>,
+                mostly on <span className="text-indigo-400 font-bold capitalize">{data.weeklySummary.topCategory}</span>.
+                Your spending is <span className={data.weeklySummary.weeklyChange > 0 ? "text-rose-400 font-bold" : "text-emerald-400 font-bold"}>
+                  {Math.abs(data.weeklySummary.weeklyChange).toFixed(0)}% {data.weeklySummary.weeklyChange > 0 ? "higher" : "lower"}
+                </span> than last week.
+              </p>
             </div>
-            <h3 className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] mb-3">{metric.label}</h3>
-            <p className="text-3xl font-bold text-white tracking-tighter tabular-nums">
-              ₹{metric.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          </GlassCard>
-        ))}
+            <div className="flex gap-4">
+              <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 text-center min-w-[120px]">
+                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Savings Rate</p>
+                <p className="text-xl font-bold text-white">{((1 - (data.totalExpenses / (data.monthlyIncome || 1))) * 100).toFixed(0)}%</p>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
       </div>
 
-      
 
-      
 
-      
+
+
+
+
+
+
+
 
 
       {/* AI Insights Section - Redesigned like Homepage CTA */}
@@ -239,17 +303,34 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {insights.map((insight, idx) => (
+              {insights.map((insight: InsightData, idx: number) => (
                 <GlassCard key={idx} hoverEffect className="p-6">
-                  <div className="flex items-start gap-6">
-                    <div className="mt-1 p-2 bg-indigo-500/10 rounded-xl group-hover:scale-110 transition-transform">
-                      {insight.type === "danger" ? <AlertCircle className="w-4 h-4 text-red-400" /> :
-                        insight.type === "warning" ? <AlertTriangle className="w-4 h-4 text-amber-400" /> :
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                  <div className="flex items-start gap-4">
+                    <div className="mt-1 flex-shrink-0">
+                      {insight.type === "danger" ? <AlertCircle className="w-5 h-5 text-rose-400" /> :
+                        insight.type === "warning" ? <AlertTriangle className="w-5 h-5 text-amber-400" /> :
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
                     </div>
-                    <div>
-                      {/* <h4 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 mb-2">Module {idx + 1}</h4> */}
-                      <p className="text-base font-semibold text-zinc-300 leading-relaxed">{insight.message}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${insight.type === "danger" ? "bg-rose-500/10 border-rose-500/20 text-rose-400" :
+                            insight.type === "warning" ? "bg-amber-500/10 border-amber-500/20 text-amber-400" :
+                              "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                          }`}>AI Insight</span>
+                        {insight.explanation && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveInsight(insight);
+                              setIsInsightXaiOpen(true);
+                            }}
+                            className="text-[7px] font-black uppercase tracking-widest px-2 py-0.5 bg-white/5 border border-white/10 rounded hover:text-indigo-400 hover:border-indigo-500/30 transition-all ml-2"
+                          >
+                            Why?
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-sm font-bold text-zinc-200 leading-snug">{insight.message}</p>
                     </div>
                   </div>
                 </GlassCard>
@@ -258,6 +339,12 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <InsightExplanationModal
+        isOpen={isInsightXaiOpen}
+        onClose={() => setIsInsightXaiOpen(false)}
+        explanation={activeInsight?.explanation}
+      />
 
 
 
@@ -274,7 +361,7 @@ export default function DashboardPage() {
         <div className="px-10 py-6">
           {data.recentTransactions.length > 0 ? (
             <div className="divide-y divide-white/5">
-              {data.recentTransactions.map((tx) => {
+              {data.recentTransactions.map((tx: any) => {
                 const isCredit = tx.type === "CREDIT" || tx.type === "INCOME";
                 return (
                   <div key={tx.id} className="py-6 flex items-center justify-between hover:bg-white/5 transition-all px-4 rounded-2xl -mx-4 group">

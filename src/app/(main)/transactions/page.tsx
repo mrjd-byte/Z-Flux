@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, ArrowUpRight, ArrowDownRight, X, Loader2 } from "lucide-react";
+import { Plus, ArrowUpRight, X, Loader2, Sparkles, History, ArrowDownRight } from "lucide-react";
 import { SectionContainer } from "@/components/ui/SectionContainer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { parseQuickLog } from "@/lib/utils/nlp";
 
 type Transaction = {
   id: string;
@@ -28,6 +29,17 @@ export default function TransactionsPage() {
   const [type, setType] = useState("EXPENSE"); // EXPENSE/DEBIT or INCOME/CREDIT
   const [category, setCategory] = useState("Food");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quickInput, setQuickInput] = useState("");
+
+  const handleQuickInput = (val: string) => {
+    setQuickInput(val);
+    if (val.length > 5) {
+      const parsed = parseQuickLog(val);
+      if (parsed.amount > 0) setAmount(parsed.amount.toString());
+      if (parsed.category && parsed.category !== "General") setCategory(parsed.category);
+      if (parsed.type) setType(parsed.type);
+    }
+  };
 
   // Send Money form states
   const [targetWalletId, setTargetWalletId] = useState("");
@@ -342,6 +354,22 @@ const incomeCategories = ["Salary", "Freelance", "Investment", "Bonus"];
             </div>
 
             <form onSubmit={handleAddTransaction} className="p-12 pt-0 space-y-10 relative z-10">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <Sparkles className="w-3 h-3" /> AI Quick Log
+                  </label>
+                  <span className="text-[8px] font-bold text-zinc-600 uppercase tracking-widest italic">Try: "Spent 500 on Food"</span>
+                </div>
+                <input
+                  type="text"
+                  value={quickInput}
+                  onChange={(e) => handleQuickInput(e.target.value)}
+                  className="w-full px-5 py-4 bg-white/5 border border-indigo-500/20 rounded-2xl text-xs font-bold text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-zinc-700"
+                  placeholder="Describe your activity..."
+                />
+              </div>
+
               <div className="space-y-4">
                 <label className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] block pl-1">Amount (₹)</label>
                 <div className="relative group">

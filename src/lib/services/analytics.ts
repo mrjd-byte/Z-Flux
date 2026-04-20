@@ -1,5 +1,25 @@
 import { prisma } from "@/lib/prisma";
 
+export type ExplanationItem = {
+  label: string;
+  value: string;
+  impact: number;
+  message: string;
+};
+
+export type ScoreExplanation = {
+  breakdown: ExplanationItem[];
+  finalScore: number;
+};
+
+export type InsightExplanation = {
+  trigger: string;
+  previous: string;
+  current: string;
+  change: string;
+  reason: string;
+};
+
 export async function getDashboardAnalytics(userId: string) {
   // Fetch user and wallet
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -25,21 +45,28 @@ export async function getDashboardAnalytics(userId: string) {
     take: 5,
   });
 
-  // Fetch all transactions to process aggregations
   const allTransactions = await prisma.transaction.findMany({
     where: { userId },
   });
 
+  const budgets = await prisma.budget.findMany({
+    where: { userId }
+  });
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthlyCategoryMap: Record<string, number> = {};
+  let monthlyExpenses = 0;
   let totalExpenses = 0;
-  let totalIncome = 0; 
+  let totalIncome = 0;
   let totalSalaryTransferred = 0;
-  
   const categoryMap: Record<string, number> = {};
   const trendMap: Record<string, number> = {};
 
   for (const tx of allTransactions) {
     const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT";
     const isIncome = tx.type === "CREDIT" || tx.type === "INCOME" || tx.type === "TRANSFER_IN" || tx.type === "SALARY_TO_WALLET";
+    const isThisMonth = tx.createdAt >= startOfMonth;
 
     if (tx.type === "SALARY_TO_WALLET") {
       totalSalaryTransferred += tx.amount;
@@ -47,8 +74,13 @@ export async function getDashboardAnalytics(userId: string) {
 
     if (isExpense) {
       totalExpenses += tx.amount;
+      if (isThisMonth) {
+        monthlyExpenses += tx.amount;
+        const cat = tx.category || "General";
+        monthlyCategoryMap[cat] = (monthlyCategoryMap[cat] || 0) + tx.amount;
+      }
 
-      // Group by category for pie chart
+      // Group by category for pie chart (lifetime)
       const cat = tx.category || "General";
       categoryMap[cat] = (categoryMap[cat] || 0) + tx.amount;
 
@@ -62,6 +94,37 @@ export async function getDashboardAnalytics(userId: string) {
       totalIncome += tx.amount;
     }
   }
+
+  // 🔥 NEW: Weekly Trend Logic
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+  let currentWeekExpenses = 0;
+  let lastWeekExpenses = 0;
+  const currentWeekCategoryMap: Record<string, number> = {};
+
+  for (const tx of allTransactions) {
+    const isExpense = tx.type === "DEBIT" || tx.type === "EXPENSE" || tx.type === "TRANSFER_OUT";
+    if (isExpense) {
+      if (tx.createdAt >= oneWeekAgo) {
+        currentWeekExpenses += tx.amount;
+        const cat = tx.category || "General";
+        currentWeekCategoryMap[cat] = (currentWeekCategoryMap[cat] || 0) + tx.amount;
+      } else if (tx.createdAt >= twoWeeksAgo) {
+        lastWeekExpenses += tx.amount;
+      }
+    }
+  }
+
+  const weeklyChange = lastWeekExpenses > 0 
+    ? ((currentWeekExpenses - lastWeekExpenses) / lastWeekExpenses) * 100 
+    : 0;
+
+  const currentWeekTopCategory = Object.keys(currentWeekCategoryMap).length > 0
+    ? Object.keys(currentWeekCategoryMap).sort((a, b) => currentWeekCategoryMap[b] - currentWeekCategoryMap[a])[0]
+    : "None";
 
   const categoryBreakdown = Object.keys(categoryMap).map(key => ({
     name: key,
@@ -78,11 +141,104 @@ export async function getDashboardAnalytics(userId: string) {
   const savings = user.monthlyIncome - totalSalaryTransferred;
   const remainingBudget = user.monthlyIncome - totalExpenses;
 
-  // Compute Financial Health Score (pure JS)
-  const savingsRate = user.monthlyIncome > 0 ? (remainingBudget / user.monthlyIncome) : 0;
-  const balanceWeight = Math.min(user.walletBalance / (user.monthlyIncome || 1), 1);
-  const rawScore = (savingsRate * 70) + (balanceWeight * 30);
-  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
+  // 🔥 NEW: Balanced Vitality Index Calculation
+  // 1. Calculate Metrics
+  const income = user.monthlyIncome || 0;
+  const savingsRate = income > 0 ? (income - monthlyExpenses) / income : 0;
+  const clampedSavingsRate = Math.max(0, Math.min(1, savingsRate));
+
+  let overspentAmount = 0;
+  let totalBudget = 0;
+  budgets.forEach(b => {
+    totalBudget += b.amount;
+    const spent = monthlyCategoryMap[b.category] || 0;
+    if (spent > b.amount) {
+      overspentAmount += (spent - b.amount);
+    }
+  });
+
+  const overspentRatio = totalBudget > 0 ? overspentAmount / totalBudget : 0;
+  const budgetAdherence = totalBudget > 0 ? (totalBudget - overspentAmount) / totalBudget : 1;
+  const clampedAdherence = Math.max(0, Math.min(1, budgetAdherence));
+
+  // 2. Base Score
+  let scoreValue = (clampedSavingsRate * 70) + (clampedAdherence * 30);
+
+  // 3. Smart Penalty System
+  let penaltyMultiplier = 1;
+  if (clampedSavingsRate > 0.4) penaltyMultiplier = 0.4;
+  else if (clampedSavingsRate > 0.25) penaltyMultiplier = 0.7;
+
+  scoreValue -= (overspentRatio * 20 * penaltyMultiplier);
+
+  // 4. Bonus System
+  if (clampedSavingsRate > 0.5) scoreValue += 5;
+  if (clampedAdherence > 0.9) scoreValue += 3;
+
+  // 5. Short explanation string
+  let vitalityMessage = "Excellent balance between savings and spending";
+  if (overspentRatio > 0.2) vitalityMessage = "Overspending impacting your financial health";
+  else if (clampedSavingsRate > 0.35) vitalityMessage = "Savings are strong, offsetting budget overruns";
+
+  // 6. Finalize
+  const score = Math.max(0, Math.min(100, Math.round(scoreValue)));
+
+  // 7. XAI: Score Explanation Breakdown
+  const breakdown: ExplanationItem[] = [];
+  
+  // Savings Rate Contribution
+  const savingsWeight = Math.round(clampedSavingsRate * 70);
+  breakdown.push({
+    label: "Savings Rate",
+    value: `${(clampedSavingsRate * 100).toFixed(0)}%`,
+    impact: savingsWeight,
+    message: clampedSavingsRate > 0.35 ? "Strong savings performance" : (clampedSavingsRate > 0.2 ? "Moderate savings" : "Low savings rate")
+  });
+
+  // Budget Adherence Contribution
+  const adherenceWeight = Math.round(clampedAdherence * 30);
+  breakdown.push({
+    label: "Budget Control",
+    value: overspentAmount > 0 ? "Overspent" : "Within limits",
+    impact: adherenceWeight,
+    message: overspentAmount > 0 ? "Exceeded budget in specific categories" : "Excellent control over category budgets"
+  });
+
+  // Smart Penalty (if any)
+  if (overspentRatio > 0) {
+    const penalty = Math.round(overspentRatio * 20 * penaltyMultiplier);
+    if (penalty > 0) {
+      breakdown.push({
+        label: "Overspend Penalty",
+        value: `₹${overspentAmount.toFixed(0)} excess`,
+        impact: -penalty,
+        message: penaltyMultiplier < 1 ? "Penalty softened by high savings rate" : "Direct impact from budget overruns"
+      });
+    }
+  }
+
+  // Bonuses
+  if (clampedSavingsRate > 0.5) {
+    breakdown.push({
+      label: "Savings Bonus",
+      value: "High Tier",
+      impact: 5,
+      message: "Reward for exceptional savings discipline"
+    });
+  }
+  if (clampedAdherence > 0.9) {
+    breakdown.push({
+      label: "Discipline Bonus",
+      value: "Top Tier",
+      impact: 3,
+      message: "Consistent budget adherence reward"
+    });
+  }
+
+  const scoreExplanation: ScoreExplanation = {
+    breakdown,
+    finalScore: score
+  };
 
   let label = "Moderate";
   if (score >= 80) label = "Excellent";
@@ -144,10 +300,18 @@ export async function getDashboardAnalytics(userId: string) {
     categoryBreakdown,
     expenseTrend,
     recentTransactions,
+    weeklySummary: {
+      currentWeekExpenses,
+      lastWeekExpenses,
+      weeklyChange,
+      topCategory: currentWeekTopCategory
+    },
     financialHealth: {
       score,
       label,
       aiSummary,
+      vitalityMessage,
+      scoreExplanation,
       topCategory,
       prediction
     }
